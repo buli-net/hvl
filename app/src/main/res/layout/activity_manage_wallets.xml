@@ -1,45 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FILE: activity_manage_wallets.xml -->
-<!-- Màn hình quản lý ví - có 2 nút -->
+<!-- Khai báo phiên bản XML -->
+<!-- File này định nghĩa giao diện màn hình Quản lý ví -->
 
-<!-- Layout chính dạng dọc -->
+<!-- LinearLayout là layout cha, sắp xếp các view theo chiều dọc -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_width="match_parent"  <!-- Chiều rộng bằng màn hình -->
+    android:layout_height="match_parent" <!-- Chiều cao bằng màn hình -->
+    android:orientation="vertical"       <!-- Sắp xếp con theo chiều dọc -->
+    android:padding="16dp">               <!-- Cách lề 16dp bốn phía -->
 
-    <!-- Tiêu đề danh sách -->
+    <!-- TextView hiển thị tiêu đề -->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Danh sách ví"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp" />
+        android:layout_width="match_parent"  <!-- Rộng full -->
+        android:layout_height="wrap_content" <!-- Cao vừa đủ chữ -->
+        android:text="Danh sách ví"          <!-- Nội dung chữ -->
+        android:textSize="18sp"              <!-- Cỡ chữ 18sp -->
+        android:textStyle="bold"             <!-- In đậm -->
+        android:paddingBottom="8dp" />       <!-- Cách dưới 8dp -->
 
-    <!-- ListView hiển thị ví -->
+    <!-- ListView hiển thị danh sách các ví -->
     <ListView
-        android:id="@+id/walletList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:dividerHeight="1dp" />
+        android:id="@+id/walletList"         <!-- ID để gọi trong Kotlin là binding.walletList -->
+        android:layout_width="match_parent"  <!-- Rộng full -->
+        android:layout_height="0dp"          <!-- Cao = 0 để dùng weight -->
+        android:layout_weight="1"            <!-- Chiếm hết không gian còn lại -->
+        android:dividerHeight="1dp" />       <!-- Đường kẻ giữa các item cao 1dp -->
 
-    <!-- NÚT 1: Tạo ví mới (dùng id cũ để không phải sửa code nhiều) -->
+    <!-- Nút 1: Tạo ví mới -->
     <Button
-        android:id="@+id/addWalletBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Tạo ví" />
+        android:id="@+id/addWalletBtn"       <!-- ID cho nút tạo ví -->
+        android:layout_width="match_parent"  <!-- Rộng full -->
+        android:layout_height="wrap_content" <!-- Cao vừa đủ -->
+        android:layout_marginTop="12dp"      <!-- Cách trên 12dp -->
+        android:text="Tạo ví" />              <!-- Chữ trên nút -->
 
-    <!-- NÚT 2: Thêm ví từ Seed - NÚT MỚI BẠN CẦN THÊM -->
+    <!-- Nút 2: Thêm ví từ seed -->
     <Button
-        android:id="@+id/importWalletBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Thêm ví (Import Seed)" />
+        android:id="@+id/importWalletBtn"    <!-- ID cho nút import -->
+        android:layout_width="match_parent"  <!-- Rộng full -->
+        android:layout_height="wrap_content" <!-- Cao vừa đủ -->
+        android:layout_marginTop="8dp"       <!-- Cách nút trên 8dp -->
+        android:text="Thêm ví (Import Seed)" /> <!-- Chữ trên nút -->
 
+    <!-- Nút 3: Đổi mật khẩu - NÚT MỚI THÊM -->
+    <Button
+        android:id="@+id/changePassBtn"      <!-- ID để gọi binding.changePassBtn -->
+        android:layout_width="match_parent"  <!-- Rộng full -->
+        android:layout_height="wrap_content" <!-- Cao vừa đủ -->
+        android:layout_marginTop="8dp"       <!-- Cách nút trên 8dp -->
+        android:text="Đổi mật khẩu" />       <!-- Chữ trên nút -->
+
+<!-- Đóng thẻ LinearLayout -->
 </LinearLayout>
