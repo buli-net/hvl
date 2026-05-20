@@ -1,83 +1,112 @@
-package com.hvl.wallet // Khai báo package
+package com.hvl.wallet
 
-// --- IMPORT ---
-import android.content.Intent // Dùng để chuyển màn hình
-import android.os.Bundle // Nhận dữ liệu khi tạo Activity
-import android.widget.ArrayAdapter // Adapter cho ListView
-import android.widget.Toast // Hiện thông báo nhanh
-import androidx.appcompat.app.AppCompatActivity // Activity cơ bản
-import com.hvl.wallet.databinding.ActivityMainBinding // Binding từ XML
-import kotlinx.coroutines.* // Coroutine để chạy background
+import android.content.Context
+import org.bitcoinj.core.Address
+import org.bitcoinj.core.Coin
+import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.kits.WalletAppKit
+import org.bitcoinj.params.MainNetParams
+import org.bitcoinj.params.TestNet3Params
+import org.bitcoinj.wallet.DeterministicSeed
+import org.bitcoinj.wallet.Wallet
+import java.io.File
+import java.util.concurrent.TimeUnit
 
-// Khai báo class MainActivity kế thừa AppCompatActivity
-class MainActivity : AppCompatActivity() {
+class WalletManager(private val context: Context) {
 
-    // Biến binding để truy cập view trong XML
-    private lateinit var binding: ActivityMainBinding
+    // FIX 1: dùng NetworkParameters để chứa được cả Mainnet và Testnet
+    private var params: NetworkParameters = MainNetParams.get()
+    private val walletDir: File = context.filesDir
+    private lateinit var kit: WalletAppKit
+    private lateinit var wallet: Wallet
+    private var currentName = "hvl-wallet"
 
-    // Biến quản lý ví Bitcoin
-    private lateinit var wm: WalletManager
-
-    // Tạo scope chạy trên Main thread
-    private val scope = CoroutineScope(Dispatchers.Main)
-
-    // Hàm chạy khi Activity được tạo
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState) // Gọi hàm cha
-
-        // Khởi tạo binding từ layout
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        // Gán view root cho activity
-        setContentView(binding.root)
-
-        // Khởi tạo WalletManager
-        wm = WalletManager(this)
-        // Bắt đầu ví (load wallet, kết nối mạng)
-        wm.start()
-
-        // Hiển thị địa chỉ ví hiện tại
-        binding.addressText.text = wm.getCurrentAddress()
-        // Hiển thị số dư
-        binding.balanceText.text = wm.getBalance()
-
-        // Lấy giá BTC bằng coroutine
-        scope.launch {
-            // Chạy trên IO để gọi API
-            val price = withContext(Dispatchers.IO) { PriceHelper.getBtcPrice() }
-            // Cập nhật lên TextView
-            binding.priceText.text = "BTC: $${price.toInt()}"
+    fun start() {
+        kit = object : WalletAppKit(params, walletDir, currentName) {
+            override fun onSetupCompleted() { wallet = wallet() }
         }
+        kit.setAutoSave(true)
+        kit.startAsync()
+        kit.awaitRunning()
+        wallet = kit.wallet()
+    }
 
-        // Lấy lịch sử giao dịch
-        val history = wm.getTransactionHistory()
-        // Gán adapter cho ListView
-        binding.historyList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, history)
-
-        // Nút Nhận -> mở ReceiveActivity
-        binding.receiveBtn.setOnClickListener {
-            startActivity(Intent(this, ReceiveActivity::class.java))
-        }
-
-        // Nút Gửi -> mở SendActivity
-        binding.sendBtn.setOnClickListener {
-            startActivity(Intent(this, SendActivity::class.java))
-        }
-
-        // Nút Quản lý ví -> mở ManageWalletsActivity
-        binding.manageBtn.setOnClickListener {
-            startActivity(Intent(this, ManageWalletsActivity::class.java))
-        }
-
-        // Nút Xuất Seed -> hiện Toast (chỉ test)
-        binding.seedBtn.setOnClickListener {
-            Toast.makeText(this, "Seed: ${wm.getSeedPhrase()}", Toast.LENGTH_LONG).show()
+    fun stop() {
+        if (::kit.isInitialized) {
+            kit.stopAsync()
+            kit.awaitTerminated()
         }
     }
 
-    // Hàm chạy khi Activity bị hủy
-    override fun onDestroy() {
-        super.onDestroy()
-        wm.stop() // Dừng ví
-        scope.cancel() // Hủy coroutine
+    fun getCurrentAddress(): String = wallet.currentReceiveAddress().toString()
+
+    fun getBalance(): String = wallet.balance.toFriendlyString()
+
+    fun getTransactionHistory(): List<String> =
+        wallet.getTransactionsByTime().take(20).map {
+            "${it.updateTime} : ${it.getValue(wallet).toFriendlyString()}"
+        }
+
+    fun getSeedPhrase(): String =
+        wallet.keyChainSeed?.mnemonicCode?.joinToString(" ") ?: ""
+
+    fun sendBitcoin(toAddress: String, amountBtc: String): String {
+        return try {
+            val target = Address.fromString(params, toAddress)
+            val amount = Coin.parseCoin(amountBtc)
+            val result = wallet.sendCoins(kit.peerGroup(), target, amount)
+            result.broadcastComplete.get(30, TimeUnit.SECONDS)
+            result.tx.txId.toString()
+        } catch (e: Exception) {
+            "Lỗi: ${e.message}"
+        }
+    }
+
+    fun setTestnet(isTest: Boolean) {
+        params = if (isTest) TestNet3Params.get() else MainNetParams.get()
+    }
+
+    fun createNewWallet(name: String = "wallet-${System.currentTimeMillis()}") {
+        currentName = name
+        if (::kit.isInitialized) stop()
+        start()
+    }
+
+    fun importFromSeed(seedPhrase: String, name: String = "imported") {
+        currentName = name
+        if (::kit.isInitialized) stop()
+        start()
+    }
+
+    fun listWallets(): List<String> {
+        return walletDir.listFiles()
+            ?.filter { it.name.endsWith(".wallet") }
+            ?.map { it.nameWithoutExtension }
+            ?.ifEmpty { listOf(currentName) }
+            ?: listOf(currentName)
+    }
+
+    fun switchWallet(name: String) {
+        currentName = name
+        if (::kit.isInitialized) stop()
+        start()
+    }
+
+    // FIX 2: trả về Boolean để khớp với ManageWalletsActivity.kt dòng 222
+    fun renameWallet(oldName: String, newName: String): Boolean {
+        val oldFile = File(walletDir, "$oldName.wallet")
+        val newFile = File(walletDir, "$newName.wallet")
+        val ok1 = oldFile.renameTo(newFile)
+        val ok2 = File(walletDir, "$oldName.spvchain").renameTo(File(walletDir, "$newName.spvchain"))
+        return ok1 && ok2
+    }
+
+    fun getCurrentWalletName(): String = currentName
+
+    fun getAddressList(): List<String> = listOf(getCurrentAddress())
+
+    fun deleteWallet(name: String) {
+        File(walletDir, "$name.wallet").delete()
+        File(walletDir, "$name.spvchain").delete()
     }
 }
