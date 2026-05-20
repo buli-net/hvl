@@ -1,5 +1,5 @@
 // FILE: app/build.gradle
-// TÁC DỤNG: Cấu hình app ví BTC, tải thư viện bitcoinj để tạo ví mainnet
+// TÁC DỤNG: Cấu hình chi tiết app ví BTC mainnet
 
 plugins {
     id 'com.android.application'
@@ -7,19 +7,24 @@ plugins {
 }
 
 android {
-    // Tên gói duy nhất của app
     namespace 'com.hvl.wallet'
     compileSdk 34
 
     defaultConfig {
         applicationId "com.hvl.wallet"
-        minSdk 24          // Chạy từ Android 7.0 trở lên
+        minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0-mainnet"
+        // BẬT multiDex vì bitcoinj rất lớn, vượt 64k method
+        multiDexEnabled true
+    }
 
-        // Bật vector drawable cho icon ví
-        vectorDrawables.useSupportLibrary = true
+    // LOẠI BỎ FILE TRÙNG - sửa lỗi packaging của bitcoinj
+    packaging {
+        resources {
+            excludes += "/META-INF/*"
+        }
     }
 
     buildTypes {
@@ -27,12 +32,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {
-            // Cho phép cài debug dễ dàng
-            applicationIdSuffix ".debug"
-        }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -41,25 +41,17 @@ android {
         jvmTarget = '17'
     }
     buildFeatures {
-        viewBinding true  // Dùng để truy cập giao diện dễ hơn
+        viewBinding true
     }
 }
 
 dependencies {
-    // THƯ VIỆN GIAO DIỆN
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-
-    // THƯ VIỆN BITCOINJ - QUAN TRỌNG NHẤT
-    // Đây là thư viện tạo ví BTC mainnet, gửi/nhận, tạo địa chỉ
-    // Version 0.16.2 hỗ trợ Taproot và mainnet đầy đủ
+    // THƯ VIỆN BITCOINJ - tạo ví mainnet thật
     implementation 'org.bitcoinj:bitcoinj-core:0.16.2'
-
-    // Thư viện mã hóa bổ sung cho bitcoinj
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
-
-    // Logging
-    implementation 'org.slf4j:slf4j-android:1.7.36'
+    // Hỗ trợ multiDex
+    implementation 'androidx.multidex:multidex:2.0.1'
 }
