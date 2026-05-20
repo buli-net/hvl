@@ -1,64 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#FFFFFF">
 
-    <TextView
-        android:id="@+id/priceText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="BTC: $0"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/balanceText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="0 BTC"
-        android:textSize="24sp" />
-
-    <TextView
-        android:id="@+id/addressText"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="address"
-        android:textIsSelectable="true" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/receiveBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Nhận" />
+        <TextView
+            android:id="@+id/priceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BTC: $0"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
 
-    <Button
-        android:id="@+id/sendBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Gửi" />
+        <TextView
+            android:id="@+id/balanceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="0 BTC"
+            android:textSize="24sp"
+            android:textColor="#000000" />
 
-    <Button
-        android:id="@+id/manageBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Quản lý ví" />
+        <TextView
+            android:id="@+id/addressText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="address"
+            android:textIsSelectable="true"
+            android:textColor="#000000" />
 
-    <Button
-        android:id="@+id/seedBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Seed" />
+        <Button
+            android:id="@+id/receiveBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Nhận" />
 
-    <ListView
-        android:id="@+id/historyList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp" />
+        <Button
+            android:id="@+id/sendBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gửi" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/manageBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Quản lý ví" />
+
+        <Button
+            android:id="@+id/seedBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seed" />
+
+        <ListView
+            android:id="@+id/historyList"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+</ScrollView>
