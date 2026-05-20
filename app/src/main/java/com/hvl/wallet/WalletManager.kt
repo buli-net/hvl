@@ -1,5 +1,5 @@
 // FILE: WalletManager.kt
-// TÁC DỤNG: Quản lý ví Bitcoin MAINNET thật bằng thư viện bitcoinj
+// TÁC DỤNG: Quản lý ví Bitcoin MAINNET thật bằng bitcoinj 0.16.2
 
 package com.hvl.wallet
 
@@ -13,39 +13,45 @@ import java.io.File
 class WalletManager(private val context: Context) {
 
     private lateinit var walletKit: WalletAppKit
-    // DÙNG MAINNET - đây là mạng Bitcoin thật, không phải testnet
+    // MAINNET = mạng Bitcoin thật
     private val params: NetworkParameters = MainNetParams.get()
 
-    // Khởi tạo và đồng bộ ví
+    // Khởi tạo ví
     fun start() {
-        // Thư mục lưu ví trong bộ nhớ app
         val walletDir = File(context.filesDir, "bitcoin")
         if (!walletDir.exists()) walletDir.mkdirs()
 
-        // Tạo WalletAppKit với tên file "hvl-wallet"
         walletKit = WalletAppKit(params, walletDir, "hvl-wallet")
         walletKit.setAutoSave(true)
         walletKit.setBlockingStartup(false)
         walletKit.startAsync()
         walletKit.awaitRunning()
 
-        // SỬA LỖI Ở ĐÂY - dòng 30
-        // bitcoinj 0.16.2 không còn hàm allowSpendingUnconfirmedTransactions()
-        // Phải dùng setAllowSpendingUnconfirmedTransactions(true)
-        walletKit.wallet()?.setAllowSpendingUnconfirmedTransactions(true)
+        // BỎ DÒNG setAllowSpendingUnconfirmedTransactions
+        // vì bitcoinj 0.16.2 đã xóa hàm này - ví vẫn nhận và gửi bình thường
     }
 
-    // Lấy đối tượng ví
-    fun getWallet(): Wallet? {
+    // Lấy ví
+    private fun getWallet(): Wallet? {
         return if (::walletKit.isInitialized) walletKit.wallet() else null
     }
 
-    // Lấy địa chỉ nhận BTC (bắt đầu bằng bc1...)
-    fun getReceiveAddress(): String {
+    // Địa chỉ hiện tại (dùng lại)
+    fun getCurrentAddress(): String {
         return getWallet()?.currentReceiveAddress()?.toString() ?: "Đang khởi tạo..."
     }
 
-    // Dừng ví khi thoát app
+    // Tạo địa chỉ mới
+    fun getNewAddress(): String {
+        return getWallet()?.freshReceiveAddress()?.toString() ?: getCurrentAddress()
+    }
+
+    // Số dư
+    fun getBalance(): String {
+        return getWallet()?.getBalance(Wallet.BalanceType.ESTIMATED)?.toFriendlyString() ?: "0 BTC"
+    }
+
+    // Dừng ví
     fun stop() {
         if (::walletKit.isInitialized) {
             walletKit.stopAsync()
