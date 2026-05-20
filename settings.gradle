@@ -1,0 +1,27 @@
+// FILE: settings.gradle
+// TÁC DỤNG: Cấu hình gốc cho dự án Android, chỉ định kho tải thư viện
+
+// BƯỚC 1: Khai báo nơi tải plugin Gradle
+pluginManagement {
+    repositories {
+        google()          // Lấy plugin Android từ Google
+        mavenCentral()    // Lấy thư viện Java phổ biến
+        gradlePluginPortal() // Lấy plugin cộng đồng
+    }
+}
+
+// BƯỚC 2: Khai báo nơi tải thư viện cho app (bitcoinj, androidx...)
+dependencyResolutionManagement {
+    // Bắt buộc dùng kho ở trên, tránh lỗi bảo mật
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()          // Thư viện AndroidX
+        mavenCentral()    // Thư viện bitcoinj sẽ tải từ đây
+    }
+}
+
+// BƯỚC 3: Đặt tên dự án
+rootProject.name = "hvl"  // Tên này sẽ hiện trong Android Studio
+
+// BƯỚC 4: Bao gồm module 'app' (nơi chứa code ví BTC)
+include ':app'
