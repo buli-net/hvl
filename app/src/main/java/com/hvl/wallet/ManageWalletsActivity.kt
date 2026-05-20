@@ -1,16 +1,24 @@
-// FILE: ManageWalletsActivity.kt
-// TÁC DỤNG: Cho phép đổi tên, xóa, chọn ví đang dùng
+// FILE: app/src/main/java/com/hvl/wallet/ManageWalletsActivity.kt
+// TÁC DỤNG: Màn hình quản lý đa ví - chọn, đổi tên, xóa ví
+// PHIÊN BẢN: 2.1 - Fix đổi tên tạo ví mới, fix chọn ví không refresh
+
 package com.hvl.wallet
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.hvl.wallet.databinding.ActivityManageWalletsBinding
 
 class ManageWalletsActivity : AppCompatActivity() {
+    
+    // Binding cho layout activity_manage_wallets.xml
     private lateinit var binding: ActivityManageWalletsBinding
+    
+    // Quản lý ví
     private lateinit var wm: WalletManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,50 +27,81 @@ class ManageWalletsActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         wm = WalletManager(this)
-        loadWallets()
+        loadWallets() // Hiển thị danh sách ví
         
-        // Nhấn giữ để đổi tên hoặc xóa
+        // Nhấn giữ vào ví để hiện menu
         binding.walletList.setOnItemLongClickListener { _, _, pos, _ ->
-            val name = binding.walletList.adapter.getItem(pos) as String
+            // Lấy tên ví (bỏ dấu ✓ nếu có)
+            val displayName = binding.walletList.adapter.getItem(pos) as String
+            val name = displayName.replace(" ✓", "")
+            
             AlertDialog.Builder(this).setTitle("Ví: $name")
                 .setItems(arrayOf("Chọn dùng", "Đổi tên", "Xóa")) { _, which ->
                     when (which) {
-                        0 -> { wm.createNewWallet(name); finish() } // chọn
-                        1 -> renameWallet(name)
-                        2 -> { wm.deleteWallet(name); loadWallets() }
+                        0 -> { // CHỌN VÍ ĐANG DÙNG
+                            wm.switchWallet(name) // Lưu vào SharedPreferences
+                            Toast.makeText(this, "Đã chọn $name", Toast.LENGTH_SHORT).show()
+                            // Quay về MainActivity và xóa stack cũ để refresh
+                            val intent = Intent(this, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+                        1 -> renameWallet(name) // ĐỔI TÊN
+                        2 -> { // XÓA VÍ
+                            wm.deleteWallet(name)
+                            Toast.makeText(this, "Đã xóa $name", Toast.LENGTH_SHORT).show()
+                            loadWallets() // Refresh danh sách
+                        }
                     }
                 }.show()
             true
         }
         
+        // NÚT THÊM VÍ MỚI
         binding.addWalletBtn.setOnClickListener {
             val input = EditText(this)
             input.hint = "Tên ví mới"
             AlertDialog.Builder(this).setTitle("Tạo ví")
                 .setView(input)
                 .setPositiveButton("Tạo") { _, _ ->
-                    wm.createNewWallet(input.text.toString())
-                    loadWallets()
+                    val newName = input.text.toString()
+                    if (newName.isNotEmpty()) {
+                        wm.createNewWallet(newName)
+                        loadWallets()
+                    }
                 }.show()
         }
     }
     
+    // Load danh sách ví và đánh dấu ví đang dùng
     private fun loadWallets() {
         val wallets = wm.listWallets()
+        val current = wm.getCurrentWalletName()
+        // Thêm dấu ✓ vào ví đang dùng
+        val display = wallets.map { if (it == current) "$it ✓" else it }
         binding.walletList.adapter = ArrayAdapter(this, 
-            android.R.layout.simple_list_item_1, wallets)
+            android.R.layout.simple_list_item_1, display)
     }
     
+    // Hàm đổi tên ví
     private fun renameWallet(oldName: String) {
-        // Đơn giản: tạo ví mới với tên mới rồi xóa cũ (bitcoinj không hỗ trợ rename trực tiếp)
         val input = EditText(this)
         input.setText(oldName)
-        AlertDialog.Builder(this).setTitle("Đổi tên")
+        AlertDialog.Builder(this).setTitle("Đổi tên ví")
             .setView(input)
             .setPositiveButton("OK") { _, _ ->
-                // Thực tế cần copy file, ở đây mình tạo mới
-                wm.createNewWallet(input.text.toString())
-                loadWallets()
-            }.show()
+                val newName = input.text.toString()
+                if (newName.isNotEmpty() && newName != oldName) {
+                    if (wm.renameWallet(oldName, newName)) {
+                        Toast.makeText(this, "Đã đổi tên", Toast.LENGTH_SHORT).show()
+                        loadWallets()
+                    } else {
+                        Toast.makeText(this, "Lỗi đổi tên", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 }
