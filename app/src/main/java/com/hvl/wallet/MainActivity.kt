@@ -1,96 +1,83 @@
-// Khai báo package của ứng dụng
-package com.hvl.wallet
+package com.hvl.wallet // Khai báo package
 
-// Import Intent để chuyển màn hình
-import android.content.Intent
-// Import Bundle để nhận dữ liệu khi tạo activity
-import android.os.Bundle
-// Import ArrayAdapter để đổ dữ liệu vào ListView
-import android.widget.ArrayAdapter
-// Import Toast để hiện thông báo
-import android.widget.Toast
-// Import AppCompatActivity là activity cơ bản
-import androidx.appcompat.app.AppCompatActivity
-// Import binding được sinh từ activity_main.xml
-import com.hvl.wallet.databinding.ActivityMainBinding
-// Import Coroutine để chạy tác vụ bất đồng bộ
-import kotlinx.coroutines.*
+// --- IMPORT ---
+import android.content.Intent // Dùng để chuyển màn hình
+import android.os.Bundle // Nhận dữ liệu khi tạo Activity
+import android.widget.ArrayAdapter // Adapter cho ListView
+import android.widget.Toast // Hiện thông báo nhanh
+import androidx.appcompat.app.AppCompatActivity // Activity cơ bản
+import com.hvl.wallet.databinding.ActivityMainBinding // Binding từ XML
+import kotlinx.coroutines.* // Coroutine để chạy background
 
 // Khai báo class MainActivity kế thừa AppCompatActivity
 class MainActivity : AppCompatActivity() {
-    // Khai báo biến binding để truy cập view
+
+    // Biến binding để truy cập view trong XML
     private lateinit var binding: ActivityMainBinding
-    // Khai báo biến quản lý ví
+
+    // Biến quản lý ví Bitcoin
     private lateinit var wm: WalletManager
-    // Tạo CoroutineScope chạy trên Main thread
+
+    // Tạo scope chạy trên Main thread
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    // Hàm onCreate chạy khi activity được tạo
+    // Hàm chạy khi Activity được tạo
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Gọi hàm cha
-        super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState) // Gọi hàm cha
+
         // Khởi tạo binding từ layout
         binding = ActivityMainBinding.inflate(layoutInflater)
-        // Gán view cho activity
+        // Gán view root cho activity
         setContentView(binding.root)
 
         // Khởi tạo WalletManager
         wm = WalletManager(this)
-        // Khởi động ví (kết nối mạng, load wallet)
+        // Bắt đầu ví (load wallet, kết nối mạng)
         wm.start()
 
-        // Hiển thị địa chỉ ví hiện tại lên TextView
+        // Hiển thị địa chỉ ví hiện tại
         binding.addressText.text = wm.getCurrentAddress()
-        // Hiển thị số dư lên TextView
+        // Hiển thị số dư
         binding.balanceText.text = wm.getBalance()
 
-        // Chạy coroutine để lấy giá BTC
+        // Lấy giá BTC bằng coroutine
         scope.launch {
-            // Chạy trên thread IO để gọi API
+            // Chạy trên IO để gọi API
             val price = withContext(Dispatchers.IO) { PriceHelper.getBtcPrice() }
-            // Cập nhật giá lên TextView
+            // Cập nhật lên TextView
             binding.priceText.text = "BTC: $${price.toInt()}"
         }
 
-        // Lấy lịch sử giao dịch từ ví
+        // Lấy lịch sử giao dịch
         val history = wm.getTransactionHistory()
-        // Tạo adapter cho ListView lịch sử
+        // Gán adapter cho ListView
         binding.historyList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, history)
 
-        // Xử lý nút Nhận (QR)
+        // Nút Nhận -> mở ReceiveActivity
         binding.receiveBtn.setOnClickListener {
-            // Mở màn hình ReceiveActivity
             startActivity(Intent(this, ReceiveActivity::class.java))
         }
 
-        // Xử lý nút Gửi
+        // Nút Gửi -> mở SendActivity
         binding.sendBtn.setOnClickListener {
-            // Mở màn hình SendActivity
             startActivity(Intent(this, SendActivity::class.java))
         }
 
-        // Xử lý nút Quản lý ví
+        // Nút Quản lý ví -> mở ManageWalletsActivity
         binding.manageBtn.setOnClickListener {
-            // Mở màn hình ManageWalletsActivity
             startActivity(Intent(this, ManageWalletsActivity::class.java))
         }
 
-        // Xử lý nút Xuất Seed
+        // Nút Xuất Seed -> hiện Toast (chỉ test)
         binding.seedBtn.setOnClickListener {
-            // Hiện seed phrase bằng Toast (cảnh báo: chỉ dùng test)
             Toast.makeText(this, "Seed: ${wm.getSeedPhrase()}", Toast.LENGTH_LONG).show()
         }
-
-        // LƯU Ý: ĐÃ XÓA HOÀN TOÀN CODE LIÊN QUAN ĐẾN NÚT "Tạo địa chỉ mới"
     }
 
-    // Hàm onDestroy chạy khi activity bị hủy
+    // Hàm chạy khi Activity bị hủy
     override fun onDestroy() {
-        // Gọi hàm cha
         super.onDestroy()
-        // Dừng ví để giải phóng tài nguyên
-        wm.stop()
-        // Hủy coroutine scope
-        scope.cancel()
+        wm.stop() // Dừng ví
+        scope.cancel() // Hủy coroutine
     }
 }
