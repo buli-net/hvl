@@ -1,0 +1,15 @@
+// FILE: build.gradle (project)
+// TÁC DỤNG: Cấu hình chung cho toàn dự án hvl, không chứa code app
+
+// BƯỚC 1: Khai báo plugin cần dùng
+plugins {
+    // Plugin Android Application phiên bản 8.3.2 (ổn định 2024-2026)
+    id 'com.android.application' version '8.3.2' apply false
+    // Plugin Kotlin cho Android
+    id 'org.jetbrains.kotlin.android' version '1.9.23' apply false
+}
+
+// BƯỚC 2: Dọn dẹp task (không bắt buộc nhưng giúp sạch)
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
