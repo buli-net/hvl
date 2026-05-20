@@ -1,5 +1,5 @@
 // FILE: app/build.gradle
-// TÁC DỤNG: Cấu hình chi tiết app ví BTC mainnet
+// TÁC DỤNG: Thêm ZXing để tạo và quét QR
 
 plugins {
     id 'com.android.application'
@@ -14,13 +14,11 @@ android {
         applicationId "com.hvl.wallet"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0-mainnet"
-        // BẬT multiDex vì bitcoinj rất lớn, vượt 64k method
+        versionCode 2
+        versionName "1.1-qr"
         multiDexEnabled true
     }
 
-    // LOẠI BỎ FILE TRÙNG - sửa lỗi packaging của bitcoinj
     packaging {
         resources {
             excludes += "/META-INF/*"
@@ -50,8 +48,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    // THƯ VIỆN BITCOINJ - tạo ví mainnet thật
     implementation 'org.bitcoinj:bitcoinj-core:0.16.2'
-    // Hỗ trợ multiDex
     implementation 'androidx.multidex:multidex:2.0.1'
+    // THƯ VIỆN QR - tạo QR và quét QR
+    implementation 'com.google.zxing:core:3.5.2'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 }
