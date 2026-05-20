@@ -1,16 +1,16 @@
 # FILE: .github/workflows/android.yml
-# TÁC DỤNG: Build APK ví BTC trên GitHub, chạy thủ công
+# TÁC DỤNG: Build APK ví BTC mainnet trên GitHub Actions
 
 name: Build BTC Mainnet APK
 
 on:
-  workflow_dispatch:  # Chỉ chạy khi bạn bấm nút
+  workflow_dispatch:  # Chỉ chạy khi bạn bấm nút Run
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
-      # BƯỚC 1: Lấy code
+      # BƯỚC 1: Lấy code từ repo
       - name: 1. Lấy code
         uses: actions/checkout@v4
 
@@ -22,20 +22,19 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      # BƯỚC 3: Cài Android SDK (bắt buộc)
+      # BƯỚC 3: Cài Android SDK
       - name: 3. Cài Android SDK
         uses: android-actions/setup-android@v3
 
-      # BƯỚC 4: BUILD BẰNG GRADLE 8.4 - SỬA LỖI CHÍNH
-      # Lần trước máy ảo dùng Gradle 9.5.1 quá mới, không tương thích plugin 8.1.4
-      # Giờ ép dùng Gradle 8.4 là phiên bản chuẩn cho Android
+      # BƯỚC 4: Build bằng Gradle 8.4 (ép version)
+      # Lần trước dùng Gradle 9.5 nên lỗi, giờ ép 8.4 tương thích AGP 8.3.2
       - name: 4. Build APK Debug
         uses: gradle/gradle-build-action@v3
         with:
-          gradle-version: '8.4'  # Ép đúng version
+          gradle-version: '8.4'
           arguments: assembleDebug --stacktrace
 
-      # BƯỚC 5: Lưu APK
+      # BƯỚC 5: Lưu file APK để tải về
       - name: 5. Upload APK
         uses: actions/upload-artifact@v4
         with:
