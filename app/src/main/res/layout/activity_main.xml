@@ -1,71 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="16dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+    <TextView android:id="@+id/priceText" android:text="BTC: $0" android:textSize="20sp" android:textStyle="bold" android:textColor="#000000" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/balanceText" android:text="0 BTC" android:textSize="26sp" android:textColor="#000000" android:layout_marginTop="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/addressText" android:text="address" android:textColor="#000000" android:textIsSelectable="true" android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
-        <TextView
-            android:id="@+id/priceText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BTC: $0"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#000000" />
+    <Button android:id="@+id/receiveBtn" android:text="Nhận" android:layout_marginTop="20dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/sendBtn" android:text="Gửi" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/manageBtn" android:text="Quản lý ví" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/seedBtn" android:text="Seed" android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
-        <TextView
-            android:id="@+id/balanceText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="0 BTC"
-            android:textSize="24sp"
-            android:textColor="#000000" />
-
-        <TextView
-            android:id="@+id/addressText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="address"
-            android:textIsSelectable="true"
-            android:textColor="#000000" />
-
-        <Button
-            android:id="@+id/receiveBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Nhận" />
-
-        <Button
-            android:id="@+id/sendBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Gửi" />
-
-        <Button
-            android:id="@+id/manageBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Quản lý ví" />
-
-        <Button
-            android:id="@+id/seedBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seed" />
-
-        <ListView
-            android:id="@+id/historyList"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
-</ScrollView>
+    <ListView android:id="@+id/historyList" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+</LinearLayout>
