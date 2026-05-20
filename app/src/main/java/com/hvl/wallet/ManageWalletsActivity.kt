@@ -1,5 +1,3 @@
-// FILE: ManageWalletsActivity.kt
-
 // Package
 package com.hvl.wallet
 
@@ -10,6 +8,10 @@ import android.os.Bundle
 // Import ArrayAdapter
 import android.widget.ArrayAdapter
 // Import EditText
+import android.widget.EditText
+// Import LinearLayout
+import android.widget.LinearLayout
+// Import Toast
 import android.widget.Toast
 // Import AlertDialog
 import androidx.appcompat.app.AlertDialog
@@ -18,116 +20,127 @@ import androidx.appcompat.app.AppCompatActivity
 // Import binding
 import com.hvl.wallet.databinding.ActivityManageWalletsBinding
 
-// Class
+// Class quản lý ví
 class ManageWalletsActivity : AppCompatActivity() {
     // Binding
     private lateinit var binding: ActivityManageWalletsBinding
-    // wm
+    // WalletManager
     private lateinit var wm: WalletManager
 
     // onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Super
+        // Gọi super
         super.onCreate(savedInstanceState)
-        // Inflate
+        // Inflate binding
         binding = ActivityManageWalletsBinding.inflate(layoutInflater)
         // Set view
         setContentView(binding.root)
         // Khởi tạo wm
         wm = WalletManager(this)
-        // Load ví
+        // Load danh sách ví
         loadWallets()
 
-        // ĐỔI TÊN NÚT CŨ THÀNH "Tạo ví"
+        // Đổi text nút
         binding.addWalletBtn.text = "Tạo ví"
 
-        // NÚT 1: TẠO VÍ MỚI
+        // Nút tạo ví mới
         binding.addWalletBtn.setOnClickListener {
-            // Input
+            // Tạo EditText
             val input = EditText(this)
-            // Hint
+            // Gợi ý
             input.hint = "Tên ví mới"
             // Dialog
             AlertDialog.Builder(this).setTitle("Tạo ví mới").setView(input)
-                .setPositiveButton("Tạo") { _, _ ->
+              .setPositiveButton("Tạo") { _, _ ->
                     // Lấy tên
                     val newName = input.text.toString().trim()
                     // Nếu không rỗng
                     if (newName.isNotEmpty()) {
-                        // Kiểm tra trùng tên
+                        // Kiểm tra trùng
                         if (wm.listWallets().contains(newName)) {
+                            // Thông báo trùng
                             Toast.makeText(this, "Tên ví đã tồn tại", Toast.LENGTH_SHORT).show()
                         } else {
-                            // Tạo ví mới trắng
+                            // Tạo ví
                             wm.createNewWallet(newName)
-                            // Reload danh sách
+                            // Reload
                             loadWallets()
+                            // Thông báo
                             Toast.makeText(this, "Đã tạo ví $newName", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
-                .setNegativeButton("Hủy", null)
-                .show()
+              .setNegativeButton("Hủy", null)
+              .show()
         }
 
-        // NÚT 2: THÊM VÍ TỪ SEED (cần thêm Button id=importWalletBtn trong XML)
+        // Nút import ví
         binding.importWalletBtn.setOnClickListener {
-            // Layout chứa 2 ô nhập
-            val layout = android.widget.LinearLayout(this)
-            layout.orientation = android.widget.LinearLayout.VERTICAL
+            // Tạo layout dọc
+            val layout = LinearLayout(this)
+            // Set orientation
+            layout.orientation = LinearLayout.VERTICAL
+            // Set padding
             layout.setPadding(50, 40, 50, 10)
 
-            // Ô nhập tên ví
+            // Ô nhập tên
             val nameInput = EditText(this)
+            // Gợi ý tên
             nameInput.hint = "Tên ví (vd: ví tiết kiệm)"
+            // Thêm vào layout
             layout.addView(nameInput)
 
-            // Ô nhập seed 12 từ
+            // Ô nhập seed
             val seedInput = EditText(this)
+            // Gợi ý seed
             seedInput.hint = "12 từ seed, cách nhau bằng dấu cách"
+            // Thêm vào layout
             layout.addView(seedInput)
 
-            // Dialog
+            // Dialog import
             AlertDialog.Builder(this).setTitle("Thêm ví từ Seed").setView(layout)
-                .setPositiveButton("Import") { _, _ ->
+              .setPositiveButton("Import") { _, _ ->
+                    // Lấy tên
                     val name = nameInput.text.toString().trim()
+                    // Lấy seed
                     val seed = seedInput.text.toString().trim()
-                    // Kiểm tra
+                    // Kiểm tra rỗng
                     if (name.isEmpty() || seed.isEmpty()) {
                         Toast.makeText(this, "Nhập đủ tên và seed", Toast.LENGTH_SHORT).show()
                         return@setPositiveButton
                     }
-                    if (seed.split(" ").size != 12) {
+                    // Kiểm tra 12 từ
+                    if (seed.split(" ").size!= 12) {
                         Toast.makeText(this, "Seed phải đủ 12 từ", Toast.LENGTH_SHORT).show()
                         return@setPositiveButton
                     }
+                    // Kiểm tra trùng tên
                     if (wm.listWallets().contains(name)) {
                         Toast.makeText(this, "Tên ví đã tồn tại", Toast.LENGTH_SHORT).show()
                         return@setPositiveButton
                     }
+                    // Thử import
                     try {
-                        // Import ví
                         wm.importFromSeed(name, seed)
-                        // Reload
                         loadWallets()
                         Toast.makeText(this, "Đã thêm ví $name", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         Toast.makeText(this, "Seed không hợp lệ", Toast.LENGTH_SHORT).show()
                     }
                 }
-                .setNegativeButton("Hủy", null)
-                .show()
+              .setNegativeButton("Hủy", null)
+              .show()
         }
 
         // Long click vào ví
         binding.walletList.setOnItemLongClickListener { _, _, pos, _ ->
-            // Lấy tên
+            // Lấy tên hiển thị
             val displayName = binding.walletList.adapter.getItem(pos) as String
             // Bỏ dấu check
             val name = displayName.replace(" ✓", "")
-            // Dialog
+            // Hiện menu
             AlertDialog.Builder(this).setTitle("Ví: $name")
-                .setItems(arrayOf("Chọn dùng", "Đổi tên", "Xem địa chỉ", "Xóa")) { _, which ->
+              .setItems(arrayOf("Chọn dùng", "Đổi tên", "Xem địa chỉ", "Xóa")) { _, which ->
                     when (which) {
                         0 -> {
                             // Chọn ví
@@ -140,16 +153,21 @@ class ManageWalletsActivity : AppCompatActivity() {
                         }
                         1 -> renameWallet(name)
                         2 -> {
-                            // Xem địa chỉ
+                            // Lưu ví hiện tại
                             val prev = wm.getCurrentWalletName()
+                            // Chuyển sang ví cần xem
                             wm.switchWallet(name)
+                            // Lấy danh sách địa chỉ
                             val addresses = wm.getAddressList()
+                            // Chuyển lại ví cũ
                             wm.switchWallet(prev)
+                            // Nếu rỗng
                             if (addresses.isEmpty()) {
                                 Toast.makeText(this, "Chưa có địa chỉ", Toast.LENGTH_SHORT).show()
                             } else {
+                                // Hiện danh sách
                                 AlertDialog.Builder(this).setTitle("Địa chỉ của $name")
-                                    .setItems(addresses.toTypedArray()) { _, idx ->
+                                  .setItems(addresses.toTypedArray()) { _, idx ->
                                         val addr = addresses[idx]
                                         val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("address", addr))
@@ -158,7 +176,7 @@ class ManageWalletsActivity : AppCompatActivity() {
                             }
                         }
                         3 -> {
-                            // Xóa
+                            // Xóa ví
                             wm.deleteWallet(name)
                             loadWallets()
                         }
@@ -168,11 +186,11 @@ class ManageWalletsActivity : AppCompatActivity() {
         }
     }
 
-    // loadWallets
+    // Hàm load danh sách ví
     private fun loadWallets() {
         // Lấy danh sách
         val wallets = wm.listWallets()
-        // Ví hiện tại
+        // Lấy ví hiện tại
         val current = wm.getCurrentWalletName()
         // Thêm dấu check
         val display = wallets.map { if (it == current) "$it ✓" else it }
@@ -180,24 +198,24 @@ class ManageWalletsActivity : AppCompatActivity() {
         binding.walletList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, display)
     }
 
-    // renameWallet
+    // Hàm đổi tên ví
     private fun renameWallet(oldName: String) {
-        // Input
+        // Tạo EditText
         val input = EditText(this)
-        // Set text
+        // Set text cũ
         input.setText(oldName)
         // Dialog
         AlertDialog.Builder(this).setTitle("Đổi tên ví").setView(input)
-            .setPositiveButton("OK") { _, _ ->
+          .setPositiveButton("OK") { _, _ ->
                 val newName = input.text.toString().trim()
-                if (newName.isNotEmpty() && newName != oldName) {
+                if (newName.isNotEmpty() && newName!= oldName) {
                     if (wm.renameWallet(oldName, newName)) {
                         Toast.makeText(this, "Đã đổi tên", Toast.LENGTH_SHORT).show()
                         loadWallets()
                     }
                 }
             }
-            .setNegativeButton("Hủy", null)
-            .show()
+          .setNegativeButton("Hủy", null)
+          .show()
     }
 }
