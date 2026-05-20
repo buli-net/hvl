@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- FILE: AndroidManifest.xml -->
-<!-- TÁC DỤNG: Khai báo app ví BTC mainnet cho Android -->
+<!-- TÁC DỤNG: Khai báo app ví BTC -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hvl.wallet">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- QUYỀN INTERNET - bitcoinj cần để tải blockchain mainnet -->
+    <!-- QUYỀN INTERNET - bitcoinj cần để đồng bộ blockchain -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -15,10 +14,8 @@
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
         android:icon="@android:mipmap/sym_def_app_icon"
         android:roundIcon="@android:mipmap/sym_def_app_icon">
-        <!-- SỬA LỖI: dùng icon mặc định của hệ thống -->
-        <!-- Trước đây trỏ tới @mipmap/ic_launcher nhưng file không tồn tại nên build fail -->
 
-        <!-- Activity chính - màn hình ví -->
+        <!-- Activity chính -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
