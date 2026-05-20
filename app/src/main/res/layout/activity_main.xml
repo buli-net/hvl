@@ -1,24 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/priceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BTC: $0"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/balanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="0 BTC"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/addressText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_marginTop="8dp"
+        android:text="address"
+        android:textIsSelectable="true" />
 
-        <TextView android:id="@+id/priceText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="18sp" android:textStyle="bold" android:textColor="#000000"/>
-        <TextView android:id="@+id/balanceText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="24sp" android:layout_marginTop="8dp" android:textColor="#000000"/>
-        <TextView android:id="@+id/addressText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textIsSelectable="true" android:textColor="#000000"/>
+    <Button
+        android:id="@+id/receiveBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Nhận" />
 
-        <Button android:id="@+id/receiveBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Nhận" android:layout_marginTop="16dp"/>
-        <Button android:id="@+id/sendBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Gửi"/>
-        <Button android:id="@+id/manageBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Quản lý ví"/>
-        <Button android:id="@+id/seedBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Seed"/>
+    <Button
+        android:id="@+id/sendBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gửi" />
 
-        <ListView android:id="@+id/historyList" android:layout_width="match_parent" android:layout_height="300dp" android:layout_marginTop="16dp"/>
-    </LinearLayout>
-</ScrollView>
+    <Button
+        android:id="@+id/newAddressBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tạo địa chỉ mới" />
+
+    <Button
+        android:id="@+id/manageBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quản lý ví" />
+
+    <Button
+        android:id="@+id/seedBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Seed" />
+
+    <ListView
+        android:id="@+id/historyList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp" />
+</LinearLayout>
