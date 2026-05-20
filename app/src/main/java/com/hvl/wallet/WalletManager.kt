@@ -174,7 +174,7 @@ class WalletManager(private val context: Context) {
         }
     }
 
-    // Hàm gửi coin
+    // Hàm gửi coin - ĐÃ SỬA LỖI Ở ĐÂY
     fun sendCoins(toAddress: String, amountBtc: String, feePerKb: Coin): String {
         // Thử gửi
         return try {
@@ -192,8 +192,8 @@ class WalletManager(private val context: Context) {
             val result = wallet.sendCoins(req)
             // Đợi broadcast
             result.broadcastComplete.get()
-            // Trả txid
-            "Đã gửi! TX: ${result.txId}"
+            // SỬA: dùng result.tx.txId thay vì result.txId
+            "Đã gửi! TX: ${result.tx.txId}"
         } catch (e: Exception) {
             // Trả lỗi
             "Lỗi: ${e.message}"
