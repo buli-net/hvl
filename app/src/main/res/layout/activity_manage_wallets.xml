@@ -1,15 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Màn hình quản lý ví: đổi tên, xóa, chọn -->
+<!-- FILE: activity_manage_wallets.xml -->
+<!-- Màn hình quản lý ví - có 2 nút -->
+
+<!-- Layout chính dạng dọc -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:padding="16dp">
-    
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Quản lý ví" android:textSize="22sp" android:textStyle="bold"/>
-    
-    <ListView android:id="@+id/walletList" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="16dp"/>
-    
-    <Button android:id="@+id/addWalletBtn" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="Thêm ví mới"/>
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Tiêu đề danh sách -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Danh sách ví"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <!-- ListView hiển thị ví -->
+    <ListView
+        android:id="@+id/walletList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:dividerHeight="1dp" />
+
+    <!-- NÚT 1: Tạo ví mới (dùng id cũ để không phải sửa code nhiều) -->
+    <Button
+        android:id="@+id/addWalletBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Tạo ví" />
+
+    <!-- NÚT 2: Thêm ví từ Seed - NÚT MỚI BẠN CẦN THÊM -->
+    <Button
+        android:id="@+id/importWalletBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Thêm ví (Import Seed)" />
+
 </LinearLayout>
