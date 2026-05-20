@@ -29,32 +29,16 @@ class MainActivity : AppCompatActivity() {
             binding.priceText.text = "BTC: $${"%,.0f".format(price)}"
         }
 
-        binding.historyList.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            wm.getTransactionHistory()
-        )
-
-        binding.receiveBtn.setOnClickListener {
-            startActivity(Intent(this, ReceiveActivity::class.java))
-        }
-        binding.sendBtn.setOnClickListener {
-            startActivity(Intent(this, SendActivity::class.java))
-        }
-        binding.manageBtn.setOnClickListener {
-            startActivity(Intent(this, ManageWalletsActivity::class.java))
-        }
-        binding.seedBtn.setOnClickListener {
-            Toast.makeText(this, wm.getSeedPhrase(), Toast.LENGTH_LONG).show()
-        }
+        binding.historyList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, wm.getTransactionHistory())
+        binding.receiveBtn.setOnClickListener { startActivity(Intent(this, ReceiveActivity::class.java)) }
+        binding.sendBtn.setOnClickListener { startActivity(Intent(this, SendActivity::class.java)) }
+        binding.manageBtn.setOnClickListener { startActivity(Intent(this, ManageWalletsActivity::class.java)) }
+        binding.seedBtn.setOnClickListener { Toast.makeText(this, wm.getSeedPhrase(), Toast.LENGTH_LONG).show() }
     }
 
     override fun onResume() {
         super.onResume()
-        if (::wm.isInitialized) {
-            binding.balanceText.text = wm.getBalance()
-            binding.addressText.text = wm.getCurrentAddress()
-        }
+        if (::wm.isInitialized) binding.balanceText.text = wm.getBalance()
     }
 
     override fun onDestroy() {
