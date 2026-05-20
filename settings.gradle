@@ -1,10 +1,10 @@
 // FILE: settings.gradle
-// TÁC DỤNG: Khai báo nơi tải thư viện cho ví BTC mainnet
+// TÁC DỤNG: Khai báo nơi tải thư viện cho dự án
 
-// BƯỚC 1: Khai báo kho tải plugin Android và Kotlin
+// BƯỚC 1: Khai báo kho tải plugin
 pluginManagement {
     repositories {
-        google()          // Kho Google chứa plugin Android
+        google()          // Kho chính của Google
         mavenCentral()    // Kho Maven chứa bitcoinj
         gradlePluginPortal() // Kho plugin Gradle
     }
@@ -12,10 +12,8 @@ pluginManagement {
 
 // BƯỚC 2: Khai báo kho tải thư viện cho app
 dependencyResolutionManagement {
-    // SỬA LỖI Ở ĐÂY: dùng .set() - đây là cú pháp đúng cho Gradle 8
-    // Lần trước mình ghi nhầm thành setRepositoriesMode() nên mới fail
+    // SỬA LỖI: dùng .set() - lần trước ghi nhầm thành setRepositoriesMode()
     repositoriesMode.set(org.gradle.api.initialization.resolve.RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    
     repositories {
         google()
         mavenCentral()
@@ -25,5 +23,5 @@ dependencyResolutionManagement {
 // BƯỚC 3: Tên dự án
 rootProject.name = "hvl"
 
-// BƯỚC 4: Bao gồm module app (chứa code ví)
+// BƯỚC 4: Bao gồm module app
 include ':app'
