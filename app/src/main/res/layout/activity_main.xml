@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILE: activity_main.xml -->
+<!-- TÁC DỤNG: Giao diện chính ví BTC mainnet -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HVL BTC Mainnet Wallet"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"/>
+
+    <!-- Địa chỉ ví bc1... -->
+    <TextView
+        android:id="@+id/tvAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Địa chỉ: đang tạo..."
+        android:textSize="14sp"
+        android:layout_marginTop="24dp"
+        android:textIsSelectable="true"
+        android:background="#f0f0f0"
+        android:padding="12dp"/>
+
+    <!-- Số dư -->
+    <TextView
+        android:id="@+id/tvBalance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Số dư: 0.00000000 BTC"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"/>
+
+    <Button
+        android:id="@+id/btnReceive"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tạo địa chỉ nhận (bc1)"
+        android:layout_marginTop="32dp"/>
+
+    <Button
+        android:id="@+id/btnCopy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Copy địa chỉ"
+        android:layout_marginTop="12dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mạng: BITCOIN MAINNET - tiền thật"
+        android:textColor="#D32F2F"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="40dp"/>
+</LinearLayout>
