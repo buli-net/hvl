@@ -1,6 +1,5 @@
 package com.hvl.wallet
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.hvl.wallet.databinding.ActivityManageWalletsBinding
@@ -16,10 +15,11 @@ class ManageWalletsActivity : AppCompatActivity() {
 
         wm = WalletManager(this)
         wm.start()
+        // giữ nguyên code cũ của bạn ở dưới, không thêm backBtn
+    }
 
-        binding.backBtn.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        wm.stop()
     }
 }
