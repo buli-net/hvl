@@ -3,7 +3,22 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:id="@+id/priceText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BTC: $0" android:textSize="18sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/balanceText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 BTC" android:textSize="24sp" android:layout_marginTop="8dp"/>
+        <TextView android:id="@+id/addressText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="address" android:textIsSelectable="true" android:layout_marginTop="8dp"/>
+        <Button android:id="@+id/receiveBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Nhận" android:layout_marginTop="16dp"/>
+        <Button android:id="@+id/sendBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Gửi"/>
+        <Button android:id="@+id/manageBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Quản lý ví"/>
+        <Button android:id="@+id/seedBtn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Seed"/>
+        <ListView android:id="@+id/historyList" android:layout_width="match_parent" android:layout_height="300dp" android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>="#000000">
 
     <!-- Container chính -->
     <LinearLayout
