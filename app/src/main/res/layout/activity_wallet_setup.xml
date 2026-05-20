@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILE: activity_wallet_setup.xml -->
+<!-- TÁC DỤNG: Màn hình đầu tiên khi chưa có ví -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="center" android:padding="30dp">
+    
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Chào mừng đến Ví Bitcoin" android:textSize="26sp" android:textStyle="bold"/>
+    
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Bạn chưa có ví nào" android:layout_marginTop="20dp"/>
+    
+    <Button android:id="@+id/createBtn" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="TẠO VÍ MỚI (bc1q)"
+        android:layout_marginTop="40dp"/>
+    
+    <Button android:id="@+id/importBtn" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="NHẬP SEED 12 TỪ"/>
+    
+    <!-- Chọn mạng testnet để luyện tập -->
+    <CheckBox android:id="@+id/testnetCheck" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="Dùng Testnet (tiền ảo luyện tập)"
+        android:layout_marginTop="30dp"/>
+</LinearLayout>
