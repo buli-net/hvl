@@ -1,15 +1,12 @@
 // FILE: build.gradle (project)
-// TÁC DỤNG: Cấu hình chung cho toàn dự án hvl, không chứa code app
+// TÁC DỤNG: Khai báo phiên bản plugin Android và Kotlin cho toàn dự án
 
-// BƯỚC 1: Khai báo plugin cần dùng
+// DÙNG PHIÊN BẢN ỔN ĐỊNH NHẤT 2024-2025
+// 8.1.4 tương thích với JDK17 và Gradle trên GitHub (tránh lỗi lúc nãy)
 plugins {
-    // Plugin Android Application phiên bản 8.3.2 (ổn định 2024-2026)
-    id 'com.android.application' version '8.3.2' apply false
-    // Plugin Kotlin cho Android
-    id 'org.jetbrains.kotlin.android' version '1.9.23' apply false
-}
-
-// BƯỚC 2: Dọn dẹp task (không bắt buộc nhưng giúp sạch)
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    // Plugin để build app Android
+    id 'com.android.application' version '8.1.4' apply false
+    
+    // Plugin để biên dịch Kotlin
+    id 'org.jetbrains.kotlin.android' version '1.9.0' apply false
 }
