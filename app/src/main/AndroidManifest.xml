@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILE: AndroidManifest.xml -->
+<!-- TÁC DỤNG: Khai báo app ví BTC, xin quyền mạng để đồng bộ blockchain mainnet -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- QUYỀN BẮT BUỘC CHO VÍ MAINNET -->
+    <!-- Cho phép kết nối internet tới node Bitcoin -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Kiểm tra trạng thái mạng -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="HVL BTC Wallet"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Material3.DayNight.NoActionBar"
+        tools:targetApi="31">
+        
+        <!-- Màn hình chính của ví -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
