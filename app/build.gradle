@@ -1,24 +1,33 @@
 // FILE: app/build.gradle
-// TÁC DỤNG: Thêm ZXing để tạo và quét QR
+// TÁC DỤNG: Cấu hình app Android và thêm thư viện QR
 
 plugins {
+    // Plugin tạo app Android
     id 'com.android.application'
+    // Plugin Kotlin
     id 'org.jetbrains.kotlin.android'
 }
 
 android {
+    // Tên package duy nhất của app
     namespace 'com.hvl.wallet'
+    // Dùng SDK 34 mới nhất
     compileSdk 34
 
     defaultConfig {
+        // ID app trên Play Store
         applicationId "com.hvl.wallet"
+        // Android 7.0 trở lên mới chạy được bitcoinj
         minSdk 24
         targetSdk 34
+        // Tăng version mỗi lần build
         versionCode 2
         versionName "1.1-qr"
+        // Bật multiDex vì bitcoinj vượt 64k method
         multiDexEnabled true
     }
 
+    // Loại bỏ file trùng lặp trong thư viện
     packaging {
         resources {
             excludes += "/META-INF/*"
@@ -27,10 +36,12 @@ android {
 
     buildTypes {
         release {
+            // Không obfuscate để dễ debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    // Dùng Java 17
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -38,19 +49,24 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    // Bật ViewBinding để gọi view bằng ID
     buildFeatures {
         viewBinding true
     }
 }
 
 dependencies {
+    // Thư viện Android cơ bản
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    // THƯ VIỆN BITCOINJ - tạo ví mainnet thật
     implementation 'org.bitcoinj:bitcoinj-core:0.16.2'
+    // Hỗ trợ app lớn
     implementation 'androidx.multidex:multidex:2.0.1'
-    // THƯ VIỆN QR - tạo QR và quét QR
+    // THƯ VIỆN TẠO QR CODE
     implementation 'com.google.zxing:core:3.5.2'
+    // THƯ VIỆN QUÉT QR BẰNG CAMERA
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 }
