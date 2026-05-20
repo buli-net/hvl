@@ -1,6 +1,7 @@
 package com.hvl.wallet
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -12,33 +13,48 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val priceText = findViewById<TextView>(R.id.priceText)
-        val balanceText = findViewById<TextView>(R.id.balanceText)
-        val addressText = findViewById<TextView>(R.id.addressText)
-        val historyList = findViewById<ListView>(R.id.historyList)
-        val receiveBtn = findViewById<Button>(R.id.receiveBtn)
-        val sendBtn = findViewById<Button>(R.id.sendBtn)
-        val manageBtn = findViewById<Button>(R.id.manageBtn)
-        val seedBtn = findViewById<Button>(R.id.seedBtn)
+        val scroll = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 40, 40, 40)
+            setBackgroundColor(Color.WHITE)
+        }
+        scroll.addView(layout)
 
-        // Hiện UI trước, load wallet sau
-        priceText.text = "BTC: $0"
-        balanceText.text = "Đang tải..."
-        addressText.text = "..."
+        val priceText = TextView(this).apply { textSize = 18f; setTextColor(Color.BLACK); text = "BTC: $0" }
+        val balanceText = TextView(this).apply { textSize = 26f; setTextColor(Color.BLACK); setPadding(0,20,0,0); text = "Đang tải..." }
+        val addressText = TextView(this).apply { textSize = 14f; setTextColor(Color.BLACK); setPadding(0,20,0,0); text = "..." }
+
+        fun btn(t: String) = Button(this).apply { text = t }
+        val receiveBtn = btn("Nhận")
+        val sendBtn = btn("Gửi")
+        val newAddressBtn = btn("Tạo địa chỉ mới")  // <--- NÚT GỐC
+        val manageBtn = btn("Quản lý ví")
+        val seedBtn = btn("Seed")
+        val historyList = ListView(this)
+
+        layout.addView(priceText)
+        layout.addView(balanceText)
+        layout.addView(addressText)
+        layout.addView(receiveBtn)
+        layout.addView(sendBtn)
+        layout.addView(newAddressBtn)
+        layout.addView(manageBtn)
+        layout.addView(seedBtn)
+        layout.addView(historyList, LinearLayout.LayoutParams(-1, 600))
+
+        setContentView(scroll)
 
         try {
             wm = WalletManager(this)
             wm?.start()
-            addressText.text = wm?.getCurrentAddress() ?: "No address"
-            balanceText.text = wm?.getBalance() ?: "0 BTC"
-            historyList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, 
+            addressText.text = wm?.getCurrentAddress()
+            balanceText.text = wm?.getBalance()
+            historyList.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,
                 wm?.getTransactionHistory() ?: listOf("Chưa có giao dịch"))
         } catch (e: Exception) {
-            addressText.text = "Lỗi wallet"
-            balanceText.text = "0 BTC"
-            Toast.makeText(this, "Wallet: ${e.message}", Toast.LENGTH_LONG).show()
+            addressText.text = "Lỗi: ${e.message}"
         }
 
         scope.launch {
@@ -50,10 +66,13 @@ class MainActivity : AppCompatActivity() {
 
         receiveBtn.setOnClickListener { startActivity(Intent(this, ReceiveActivity::class.java)) }
         sendBtn.setOnClickListener { startActivity(Intent(this, SendActivity::class.java)) }
-        manageBtn.setOnClickListener { startActivity(Intent(this, ManageWalletsActivity::class.java)) }
-        seedBtn.setOnClickListener { 
-            Toast.makeText(this, wm?.getSeedPhrase() ?: "No seed", Toast.LENGTH_LONG).show() 
+        newAddressBtn.setOnClickListener { 
+            wm?.createNewAddress()
+            addressText.text = wm?.getCurrentAddress()
+            Toast.makeText(this, "Đã tạo địa chỉ mới", Toast.LENGTH_SHORT).show()
         }
+        manageBtn.setOnClickListener { startActivity(Intent(this, ManageWalletsActivity::class.java)) }
+        seedBtn.setOnClickListener { Toast.makeText(this, wm?.getSeedPhrase() ?: "No seed", Toast.LENGTH_LONG).show() }
     }
 
     override fun onDestroy() {
