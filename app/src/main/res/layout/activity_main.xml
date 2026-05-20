@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- FILE: activity_main.xml -->
-<!-- TÁC DỤNG: Giao diện chính ví BTC mainnet -->
+<!-- TÁC DỤNG: Giao diện ví BTC mainnet -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -9,56 +9,61 @@
     android:padding="24dp"
     android:gravity="center_horizontal">
 
+    <!-- Tiêu đề -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="HVL BTC Mainnet Wallet"
-        android:textSize="22sp"
+        android:text="Ví Bitcoin Mainnet"
+        android:textSize="26sp"
         android:textStyle="bold"
-        android:layout_marginTop="32dp"/>
+        android:layout_marginBottom="24dp" />
 
-    <!-- Địa chỉ ví bc1... -->
+    <!-- Địa chỉ ví -->
     <TextView
-        android:id="@+id/tvAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Địa chỉ nhận:"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/addressText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Địa chỉ: đang tạo..."
-        android:textSize="14sp"
-        android:layout_marginTop="24dp"
+        android:text="Đang khởi tạo..."
         android:textIsSelectable="true"
-        android:background="#f0f0f0"
-        android:padding="12dp"/>
+        android:padding="12dp"
+        android:background="#F0F0F0"
+        android:layout_marginTop="4dp" />
 
     <!-- Số dư -->
     <TextView
-        android:id="@+id/tvBalance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Số dư: 0.00000000 BTC"
-        android:textSize="20sp"
+        android:text="Số dư:"
         android:textStyle="bold"
-        android:layout_marginTop="24dp"/>
-
-    <Button
-        android:id="@+id/btnReceive"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tạo địa chỉ nhận (bc1)"
-        android:layout_marginTop="32dp"/>
-
-    <Button
-        android:id="@+id/btnCopy"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Copy địa chỉ"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="16dp" />
 
     <TextView
+        android:id="@+id/balanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 BTC"
+        android:textSize="18sp"
+        android:layout_marginTop="4dp" />
+
+    <!-- Nút tạo địa chỉ mới -->
+    <Button
+        android:id="@+id/newAddressBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mạng: BITCOIN MAINNET - tiền thật"
-        android:textColor="#D32F2F"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginTop="40dp"/>
+        android:text="Tạo địa chỉ mới"
+        android:layout_marginTop="32dp" />
+
+    <!-- Nút làm mới -->
+    <Button
+        android:id="@+id/refreshBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Làm mới" />
+
 </LinearLayout>
