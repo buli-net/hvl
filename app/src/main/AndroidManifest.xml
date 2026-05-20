@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FILE: AndroidManifest.xml -->
-<!-- TÁC DỤNG: Khai báo quyền và Activity cho hệ thống Android -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- QUYỀN INTERNET: bitcoinj cần để tải blockchain mainnet -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- QUYỀN CAMERA: dùng để quét QR khi gửi BTC -->
-    <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:allowBackup="false"
         android:label="Ví Bitcoin"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar"
-        android:icon="@android:mipmap/sym_def_app_icon"
-        android:roundIcon="@android:mipmap/sym_def_app_icon">
-
-        <!-- Khai báo màn hình chính -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <!-- Đây là màn hình mở đầu tiên khi bấm icon app -->
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+        android:icon="@android:mipmap/sym_def_app_icon">
+        <!-- Màn hình chính -->
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>
+        <!-- Màn hình gửi BTC -->
+        <activity android:name=".SendActivity"/>
+        <!-- Màn hình tạo/import ví -->
+        <activity android:name=".WalletSetupActivity"/>
+        <!-- Màn hình quản lý ví -->
+        <activity android:name=".ManageWalletsActivity"/>
     </application>
 </manifest>
