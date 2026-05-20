@@ -1,21 +1,20 @@
 // FILE: MainActivity.kt
-// TÁC DỤNG: Giao diện chính, hiển thị địa chỉ bc1... và số dư mainnet
+// TÁC DỤNG: Màn hình chính hiển thị địa chỉ ví BTC mainnet
 
 package com.hvl.wallet
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.hvl.wallet.databinding.ActivityMainBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    // ViewBinding để truy cập tvAddress, tvBalance...
     private lateinit var binding: ActivityMainBinding
-    // Quản lý ví Bitcoin
+    // SỬA LỖI: chỉ truyền 1 tham số context
     private lateinit var walletManager: WalletManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,43 +22,34 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // BƯỚC 1: Khởi tạo ví MAINNET
-        // File ví sẽ lưu trong bộ nhớ app, không mất khi tắt app
-        walletManager = WalletManager(this, "hvl-mainnet.wallet")
+        // Khởi tạo ví
+        walletManager = WalletManager(this)
 
-        // BƯỚC 2: Hiển thị địa chỉ hiện tại
-        updateUI()
-
-        // BƯỚC 3: Nút tạo địa chỉ mới
-        binding.btnReceive.setOnClickListener {
-            // Tạo địa chỉ nhận mới dạng bech32 (bc1...)
-            val newAddress = walletManager.getNewAddress()
-            binding.tvAddress.text = "Địa chỉ: $newAddress"
-            Toast.makeText(this, "Đã tạo địa chỉ mainnet mới", Toast.LENGTH_SHORT).show()
+        // Chạy ví trên background
+        lifecycleScope.launch(Dispatchers.IO) {
+            walletManager.start()
+            withContext(Dispatchers.Main) {
+                // Hiển thị địa chỉ hiện tại
+                binding.addressText.text = walletManager.getCurrentAddress()
+                // Hiển thị số dư
+                binding.balanceText.text = walletManager.getBalance()
+            }
         }
 
-        // BƯỚC 4: Nút copy địa chỉ
-        binding.btnCopy.setOnClickListener {
-            val address = walletManager.getCurrentAddress()
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("BTC Address", address))
-            Toast.makeText(this, "Đã copy: $address", Toast.LENGTH_SHORT).show()
+        // Nút tạo địa chỉ mới
+        binding.newAddressBtn.setOnClickListener {
+            binding.addressText.text = walletManager.getNewAddress()
+        }
+
+        // Nút refresh
+        binding.refreshBtn.setOnClickListener {
+            binding.addressText.text = walletManager.getCurrentAddress()
+            binding.balanceText.text = walletManager.getBalance()
         }
     }
 
-    private fun updateUI() {
-        // Lấy địa chỉ mainnet hiện tại (bắt đầu bằng bc1)
-        val address = walletManager.getCurrentAddress()
-        binding.tvAddress.text = "Địa chỉ: $address"
-
-        // Lấy số dư (ban đầu = 0)
-        val balance = walletManager.getBalance()
-        binding.tvBalance.text = "Số dư: %.8f BTC".format(balance)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Cập nhật số dư mỗi khi mở app
-        updateUI()
+    override fun onDestroy() {
+        super.onDestroy()
+        walletManager.stop()
     }
 }
