@@ -1,14 +1,11 @@
-// FILE: WalletManager.kt
-// TÁC DỤNG: Quản lý ví Bitcoin
-
-// Khai báo package
+// Package của app
 package com.hvl.wallet
 
-// Import Context để truy cập file hệ thống
+// Import Context để truy cập file
 import android.content.Context
 // Import SharedPreferences để lưu cài đặt
 import android.content.SharedPreferences
-// Import Address
+// Import Address bitcoinj
 import org.bitcoinj.core.Address
 // Import Coin
 import org.bitcoinj.core.Coin
@@ -20,7 +17,7 @@ import org.bitcoinj.kits.WalletAppKit
 import org.bitcoinj.params.MainNetParams
 // Import TestNet
 import org.bitcoinj.params.TestNet3Params
-// Import Script
+// Import Script để ép bc1q
 import org.bitcoinj.script.Script
 // Import DeterministicSeed
 import org.bitcoinj.wallet.DeterministicSeed
@@ -31,30 +28,30 @@ import org.bitcoinj.wallet.Wallet
 // Import File
 import java.io.File
 
-// Khai báo class chính
+// Class quản lý ví
 class WalletManager(private val context: Context) {
 
-    // Tạo SharedPreferences
+    // Tạo SharedPreferences tên wallets
     private val prefs: SharedPreferences = context.getSharedPreferences("wallets", Context.MODE_PRIVATE)
-    // Biến giữ ví
+    // Biến giữ WalletAppKit
     private var walletKit: WalletAppKit? = null
 
-    // Kiểm tra testnet
+    // Hàm kiểm tra testnet
     private fun isTestnet(): Boolean = prefs.getBoolean("is_testnet", false)
-    // Lấy params mạng
+    // Hàm lấy params mạng
     private fun getParams(): NetworkParameters = if (isTestnet()) TestNet3Params.get() else MainNetParams.get()
-    // Lấy tên ví hiện tại
-    fun getCurrentWalletName(): String = prefs.getString("current_wallet", "wallet1") ?: "wallet1"
+    // Hàm lấy tên ví hiện tại
+    fun getCurrentWalletName(): String = prefs.getString("current_wallet", "wallet1")?: "wallet1"
 
-    // Hàm start ví
+    // Hàm khởi động ví
     fun start() {
         // Lấy tên ví
         val walletName = getCurrentWalletName()
-        // Tạo thư mục
+        // Tạo thư mục bitcoin
         val walletDir = File(context.filesDir, "bitcoin")
-        // Tạo nếu chưa có
+        // Nếu chưa có thì tạo
         if (!walletDir.exists()) walletDir.mkdirs()
-        // Khởi tạo kit
+        // Khởi tạo WalletAppKit
         walletKit = WalletAppKit(getParams(), walletDir, walletName)
         // Bật autosave
         walletKit?.setAutoSave(true)
@@ -62,23 +59,35 @@ class WalletManager(private val context: Context) {
         walletKit?.setBlockingStartup(false)
         // Chạy async
         walletKit?.startAsync()
-        // Đợi chạy
+        // Đợi chạy xong
         walletKit?.awaitRunning()
-        // Thử upgrade
+        // Thử ép địa chỉ bc1q
         try {
-            // Ép bc1q
             walletKit?.wallet()?.upgradeToDeterministic(Script.ScriptType.P2WPKH, null)
-        } catch (e: Exception) {
-            // Bỏ qua lỗi
+        } catch (e: Exception) {}
+        // Lấy địa chỉ hiện tại
+        val addr = getWallet()?.currentReceiveAddress()?.toString()
+        // Nếu có địa chỉ
+        if (addr!= null) {
+            // Key lưu danh sách địa chỉ
+            val key = "addresses_$walletName"
+            // Lấy set cũ
+            val oldSet = prefs.getStringSet(key, mutableSetOf())?: mutableSetOf()
+            // Tạo set mới
+            val newSet = oldSet.toMutableSet()
+            // Thêm địa chỉ
+            newSet.add(addr)
+            // Lưu lại
+            prefs.edit().putStringSet(key, newSet).apply()
         }
     }
 
-    // Lấy ví
+    // Hàm lấy ví
     private fun getWallet(): Wallet? = walletKit?.wallet()
 
-    // Tạo ví mới
+    // Hàm tạo ví mới
     fun createNewWallet(name: String) {
-        // Lưu tên
+        // Lưu tên ví mới
         prefs.edit().putString("current_wallet", name).apply()
         // Dừng ví cũ
         walletKit?.stopAsync()
@@ -86,17 +95,17 @@ class WalletManager(private val context: Context) {
         start()
     }
 
-    // Import từ seed
+    // Hàm import từ seed
     fun importFromSeed(name: String, seedPhrase: String) {
-        // Tạo seed
+        // Tạo seed từ 12 từ
         val seed = DeterministicSeed(seedPhrase, null, "", System.currentTimeMillis() / 1000)
-        // Thư mục
+        // Thư mục ví
         val walletDir = File(context.filesDir, "bitcoin")
-        // Dừng cũ
+        // Dừng ví cũ
         walletKit?.stopAsync()
-        // Tạo mới
+        // Tạo kit mới
         walletKit = WalletAppKit(getParams(), walletDir, name)
-        // Khôi phục
+        // Khôi phục từ seed
         walletKit?.restoreWalletFromSeed(seed)
         // Lưu tên
         prefs.edit().putString("current_wallet", name).apply()
@@ -104,81 +113,76 @@ class WalletManager(private val context: Context) {
         start()
     }
 
-    // Xóa ví
+    // Hàm xóa ví
     fun deleteWallet(name: String) {
         // File ví
         val file = File(context.filesDir, "bitcoin/$name.wallet")
-        // Xóa nếu có
+        // Nếu tồn tại thì xóa
         if (file.exists()) file.delete()
-        // Xóa địa chỉ lưu
-        prefs.edit().remove("last_address_$name").apply()
+        // Xóa danh sách địa chỉ
+        prefs.edit().remove("addresses_$name").apply()
     }
 
-    // Liệt kê ví
+    // Hàm liệt kê ví
     fun listWallets(): List<String> {
         // Thư mục
         val dir = File(context.filesDir, "bitcoin")
-        // Lọc file
+        // Lọc file.wallet
         return dir.listFiles()?.filter { it.name.endsWith(".wallet") }
-            ?.map { it.name.replace(".wallet", "") } ?: emptyList()
+         ?.map { it.name.replace(".wallet", "") }?: emptyList()
     }
 
-    // Set testnet
+    // Hàm set testnet
     fun setTestnet(useTestnet: Boolean) {
-        // Lưu
+        // Lưu boolean
         prefs.edit().putBoolean("is_testnet", useTestnet).apply()
     }
 
-    // Lấy địa chỉ hiện tại
+    // Hàm lấy địa chỉ hiện tại
     fun getCurrentAddress(): String {
-        // Tên ví
-        val walletName = getCurrentWalletName()
-        // Đọc địa chỉ đã lưu
-        val savedAddress = prefs.getString("last_address_$walletName", null)
-        // Trả về
-        return savedAddress ?: getWallet()?.currentReceiveAddress()?.toString() ?: "Chưa có ví"
+        // Trả về địa chỉ hoặc text mặc định
+        return getWallet()?.currentReceiveAddress()?.toString()?: "Chưa có ví"
     }
-    
-    // Tạo địa chỉ mới
-    fun getNewAddress(): String {
-        // Lấy ví
-        val wallet = getWallet() ?: return getCurrentAddress()
-        // Tạo mới
-        val newAddr = wallet.freshReceiveAddress().toString()
-        // Tên ví
-        val walletName = getCurrentWalletName()
-        // Lưu
-        prefs.edit().putString("last_address_$walletName", newAddr).apply()
-        // Trả về
-        return newAddr
-    }
-    
-    // Lấy số dư
-    fun getBalance(): String = getWallet()?.getBalance(Wallet.BalanceType.ESTIMATED)?.toFriendlyString() ?: "0 BTC"
-    // Lấy seed
-    fun getSeedPhrase(): String = getWallet()?.keyChainSeed?.mnemonicCode?.joinToString(" ") ?: ""
 
-    // Lịch sử
+    // Hàm lấy danh sách địa chỉ
+    fun getAddressList(): List<String> {
+        // Lấy tên ví
+        val walletName = getCurrentWalletName()
+        // Key
+        val key = "addresses_$walletName"
+        // Lấy set
+        val set = prefs.getStringSet(key, emptySet())?: emptySet()
+        // Trả list
+        return set.toList()
+    }
+
+    // Hàm lấy số dư
+    fun getBalance(): String = getWallet()?.getBalance(Wallet.BalanceType.ESTIMATED)?.toFriendlyString()?: "0 BTC"
+    // Hàm lấy seed
+    fun getSeedPhrase(): String = getWallet()?.keyChainSeed?.mnemonicCode?.joinToString(" ")?: ""
+
+    // Hàm lấy lịch sử
     fun getTransactionHistory(): List<String> {
         // Lấy ví
-        val wallet = getWallet() ?: return emptyList()
-        // Map 20 tx
+        val wallet = getWallet()?: return emptyList()
+        // Lấy 20 giao dịch
         return wallet.getTransactionsByTime().take(20).map { tx ->
-            // Lấy value
+            // Lấy giá trị
             val value = tx.getValue(wallet).toFriendlyString()
-            // Trả chuỗi
+            // Trả chuỗi ngày + value
             "${java.util.Date(tx.updateTime.time)}: $value"
         }
     }
 
-    // Gửi coin
+    // Hàm gửi coin
     fun sendCoins(toAddress: String, amountBtc: String, feePerKb: Coin): String {
+        // Thử gửi
         return try {
             // Lấy ví
-            val wallet = getWallet() ?: return "Ví chưa sẵn sàng"
+            val wallet = getWallet()?: return "Ví chưa sẵn sàng"
             // Parse địa chỉ
             val target = Address.fromString(getParams(), toAddress)
-            // Parse tiền
+            // Parse số tiền
             val amount = Coin.parseCoin(amountBtc)
             // Tạo request
             val req = SendRequest.to(target, amount)
@@ -186,18 +190,19 @@ class WalletManager(private val context: Context) {
             req.feePerKb = feePerKb
             // Gửi
             val result = wallet.sendCoins(req)
-            // Đợi
+            // Đợi broadcast
             result.broadcastComplete.get()
             // Trả txid
-            "Đã gửi! TX: ${result.tx.txId}"
+            "Đã gửi! TX: ${result.txId}"
         } catch (e: Exception) {
-            // Lỗi
+            // Trả lỗi
             "Lỗi: ${e.message}"
         }
     }
 
-    // Đổi tên
+    // Hàm đổi tên ví
     fun renameWallet(oldName: String, newName: String): Boolean {
+        // Thử
         return try {
             // Thư mục
             val dir = File(context.filesDir, "bitcoin")
@@ -210,18 +215,18 @@ class WalletManager(private val context: Context) {
                 // Đổi tên
                 val ok = oldFile.renameTo(newFile)
                 // Lấy địa chỉ cũ
-                val savedAddr = prefs.getString("last_address_$oldName", null)
+                val oldAddrs = prefs.getStringSet("addresses_$oldName", null)
                 // Nếu có
-                if (savedAddr != null) {
-                    // Chuyển
-                    prefs.edit().putString("last_address_$newName", savedAddr).remove("last_address_$oldName").apply()
+                if (oldAddrs!= null) {
+                    // Chuyển sang tên mới
+                    prefs.edit().putStringSet("addresses_$newName", oldAddrs).remove("addresses_$oldName").apply()
                 }
-                // Nếu đang dùng
+                // Nếu đang dùng ví cũ
                 if (getCurrentWalletName() == oldName) {
-                    // Cập nhật
+                    // Cập nhật tên
                     prefs.edit().putString("current_wallet", newName).apply()
                 }
-                // Trả
+                // Trả kết quả
                 ok
             } else false
         } catch (e: Exception) {
@@ -229,17 +234,17 @@ class WalletManager(private val context: Context) {
         }
     }
 
-    // Chọn ví
+    // Hàm chuyển ví
     fun switchWallet(name: String) {
-        // Lưu
+        // Lưu tên
         prefs.edit().putString("current_wallet", name).apply()
     }
 
-    // Dừng
+    // Hàm dừng ví
     fun stop() {
-        // Dừng
+        // Dừng async
         walletKit?.stopAsync()
-        // Đợi
+        // Đợi dừng
         walletKit?.awaitTerminated()
     }
 }
