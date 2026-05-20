@@ -1,12 +1,10 @@
 // FILE: build.gradle (project)
-// TÁC DỤNG: Khai báo phiên bản plugin
+// TÁC DỤNG: Khai báo phiên bản plugin cho toàn dự án ví BTC
 
-// NÂNG LÊN 8.3.2 - phiên bản này có ASM mới, đọc được bitcoinj 0.16
-// Lần trước 8.1.4 bị lỗi ClassReader ở ảnh bạn gửi
 plugins {
-    // Plugin build app Android
+    // Plugin Android 8.3.2 có ASM mới, đọc được bitcoinj 0.16.2
     id 'com.android.application' version '8.3.2' apply false
     
-    // Plugin Kotlin - nâng lên 1.9.22 để hợp với AGP 8.3
+    // Plugin Kotlin tương thích với AGP 8.3.2
     id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
 }
