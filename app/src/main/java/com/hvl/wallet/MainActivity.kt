@@ -1,172 +1,201 @@
-// FILE: app/src/main/java/com/hvl/wallet/MainActivity.kt
-// TÁC DỤNG: Màn hình chính của ví Bitcoin - hiển thị địa chỉ bc1q, số dư, giá, lịch sử
-// PHIÊN BẢN: 2.1 - Fix nút Nhận QR, refresh khi đổi ví
+// FILE: MainActivity.kt
 
+// Package
 package com.hvl.wallet
 
+// Import Intent
 import android.content.Intent
+// Import Bitmap
 import android.graphics.Bitmap
+// Import Bundle
 import android.os.Bundle
+// Import ArrayAdapter
 import android.widget.ArrayAdapter
+// Import EditText
 import android.widget.EditText
+// Import ImageView
 import android.widget.ImageView
+// Import AlertDialog
 import androidx.appcompat.app.AlertDialog
+// Import AppCompatActivity
 import androidx.appcompat.app.AppCompatActivity
+// Import lifecycleScope
 import androidx.lifecycle.lifecycleScope
+// Import BarcodeFormat
 import com.google.zxing.BarcodeFormat
+// Import QRCodeWriter
 import com.google.zxing.qrcode.QRCodeWriter
+// Import binding
 import com.hvl.wallet.databinding.ActivityMainBinding
+// Import Dispatchers
 import kotlinx.coroutines.Dispatchers
+// Import launch
 import kotlinx.coroutines.launch
+// Import withContext
 import kotlinx.coroutines.withContext
 
+// Class MainActivity
 class MainActivity : AppCompatActivity() {
-    
-    // Binding để truy cập các view trong activity_main.xml
+    // Binding
     private lateinit var binding: ActivityMainBinding
-    
-    // Quản lý ví Bitcoin (tạo địa chỉ, gửi nhận, lịch sử)
+    // WalletManager
     private lateinit var wm: WalletManager
-    
-    // Quản lý mật khẩu mở app
+    // PasswordHelper
     private lateinit var passHelper: PasswordHelper
 
-    // Hàm chạy đầu tiên khi app mở
+    // onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Super
         super.onCreate(savedInstanceState)
-        // Nạp layout
+        // Inflate
         binding = ActivityMainBinding.inflate(layoutInflater)
+        // Set content
         setContentView(binding.root)
-        
-        // Khởi tạo 2 helper
+        // Khởi tạo wm
         wm = WalletManager(this)
+        // Khởi tạo pass
         passHelper = PasswordHelper(this)
         
-        // KIỂM TRA MẬT KHẨU - nếu đã đặt thì yêu cầu nhập
+        // Nếu có pass
         if (passHelper.isPasswordSet()) {
+            // Tạo input
             val input = EditText(this)
+            // Hint
             input.hint = "Nhập mật khẩu"
-            // Hiện dialog không cho thoát nếu chưa nhập đúng
+            // Dialog
             AlertDialog.Builder(this).setTitle("Mở khóa ví")
                 .setView(input).setCancelable(false)
                 .setPositiveButton("OK") { _, _ ->
-                    // Kiểm tra mật khẩu đúng mới vào ví
-                    if (passHelper.checkPassword(input.text.toString())) {
-                        initWallet()
-                    } else {
-                        finish() // Sai pass thì thoát app
-                    }
+                    // Kiểm tra
+                    if (passHelper.checkPassword(input.text.toString())) initWallet() else finish()
                 }.show()
         } else {
-            // Lần đầu chưa có pass - yêu cầu tạo
+            // Tạo input
             val input = EditText(this)
+            // Hint
             input.hint = "Tạo mật khẩu mới"
+            // Dialog
             AlertDialog.Builder(this).setTitle("Bảo mật ví")
                 .setView(input).setPositiveButton("Lưu") { _, _ ->
+                    // Lưu pass
                     passHelper.setPassword(input.text.toString())
+                    // Init
                     initWallet()
                 }.show()
         }
     }
     
-    // Hàm chạy mỗi khi quay lại màn hình chính (quan trọng để refresh sau khi đổi ví)
+    // onResume
     override fun onResume() {
+        // Super
         super.onResume()
-        // Nếu ví đã khởi tạo và có ví, refresh lại UI
+        // Nếu đã init
         if (::wm.isInitialized && wm.listWallets().isNotEmpty()) {
+            // Refresh
             refreshUI()
         }
     }
 
-    // Khởi tạo ví và gán sự kiện nút
+    // initWallet
     private fun initWallet() {
-        // Nếu chưa có ví nào, chuyển sang màn hình tạo ví
+        // Nếu chưa có ví
         if (wm.listWallets().isEmpty()) {
+            // Chuyển setup
             startActivity(Intent(this, WalletSetupActivity::class.java))
+            // Đóng
             finish()
+            // Thoát
             return
         }
-        
-        // Chạy ví trong background để không đơ UI
+        // Chạy background
         lifecycleScope.launch(Dispatchers.IO) {
-            wm.start() // Khởi động blockchain sync
-            withContext(Dispatchers.Main) { 
-                refreshUI() // Cập nhật giao diện sau khi ví sẵn sàng
-            }
+            // Start ví
+            wm.start()
+            // Về main
+            withContext(Dispatchers.Main) { refreshUI() }
         }
-        
-        // NÚT GỬI - mở màn hình SendActivity
-        binding.sendBtn.setOnClickListener { 
-            startActivity(Intent(this, SendActivity::class.java)) 
-        }
-        
-        // NÚT QUẢN LÝ VÍ - mở màn hình ManageWalletsActivity
-        binding.manageBtn.setOnClickListener {
-            startActivity(Intent(this, ManageWalletsActivity::class.java))
-        }
-        
-        // FIX LỖI 1: NÚT NHẬN - hiện QR địa chỉ bc1q
+        // Nút gửi
+        binding.sendBtn.setOnClickListener { startActivity(Intent(this, SendActivity::class.java)) }
+        // Nút quản lý
+        binding.manageBtn.setOnClickListener { startActivity(Intent(this, ManageWalletsActivity::class.java)) }
+        // Nút nhận
         binding.receiveBtn.setOnClickListener {
-            val addr = wm.getCurrentAddress() // Lấy địa chỉ hiện tại
-            showQR(addr, "Địa chỉ nhận bc1q") // Hiện QR
+            // Lấy địa chỉ
+            val addr = wm.getCurrentAddress()
+            // Hiện QR
+            showQR(addr, "Địa chỉ nhận bc1q")
         }
-        
-        // NÚT TẠO ĐỊA CHỈ MỚI
+        // Nút tạo địa chỉ
         binding.newAddressBtn.setOnClickListener {
-            binding.addressText.text = wm.getNewAddress()
+            // Tạo mới
+            val newAddr = wm.getNewAddress()
+            // Set text
+            binding.addressText.text = newAddr
+            // Toast
+            android.widget.Toast.makeText(this, "Đã tạo và lưu địa chỉ mới", android.widget.Toast.LENGTH_SHORT).show()
         }
-        
-        // NÚT XUẤT SEED - hiện QR seed 12 từ
+        // Nút seed
         binding.seedBtn.setOnClickListener {
+            // Lấy seed
             val seed = wm.getSeedPhrase()
+            // Hiện
             showQR(seed, "Seed 12 từ - GIỮ KÍN!")
         }
     }
     
-    // Cập nhật số dư, giá, lịch sử
+    // refreshUI
     private fun refreshUI() {
+        // Coroutine
         lifecycleScope.launch {
-            val price = PriceHelper.getBtcPrice() // Lấy giá BTC từ internet
+            // Lấy giá
+            val price = PriceHelper.getBtcPrice()
+            // Set địa chỉ
             binding.addressText.text = wm.getCurrentAddress()
+            // Set balance
             binding.balanceText.text = wm.getBalance()
+            // Set giá
             binding.priceText.text = "BTC: $${"%.0f".format(price)}"
-            // Lấy lịch sử giao dịch
+            // Lấy history
             val history = wm.getTransactionHistory()
-            binding.historyList.adapter = ArrayAdapter(this@MainActivity, 
-                android.R.layout.simple_list_item_1, history)
+            // Set adapter
+            binding.historyList.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_list_item_1, history)
         }
     }
     
-    // Hàm tạo dialog hiển thị QR code
+    // showQR
     private fun showQR(text: String, title: String) {
-        val bitmap = generateQR(text) // Tạo ảnh QR
+        // Tạo bitmap
+        val bitmap = generateQR(text)
+        // Tạo imageview
         val image = ImageView(this)
+        // Set bitmap
         image.setImageBitmap(bitmap)
-        AlertDialog.Builder(this)
-            .setTitle(title)
-            .setView(image)
-            .setMessage(text) // Hiện cả text để copy
-            .setPositiveButton("Đóng", null)
-            .show()
+        // Dialog
+        AlertDialog.Builder(this).setTitle(title).setView(image).setMessage(text).setPositiveButton("Đóng", null).show()
     }
     
-    // Hàm tạo QR code từ text
+    // generateQR
     private fun generateQR(text: String): Bitmap {
+        // Writer
         val writer = QRCodeWriter()
+        // Encode
         val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 512, 512)
+        // Bitmap
         val bmp = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-        for (x in 0 until 512) {
-            for (y in 0 until 512) {
-                // Điểm đen nếu bitMatrix true, trắng nếu false
-                bmp.setPixel(x, y, if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
-            }
+        // Loop
+        for (x in 0 until 512) for (y in 0 until 512) {
+            // Set pixel
+            bmp.setPixel(x, y, if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         }
+        // Trả
         return bmp
     }
 
-    // Dừng ví khi thoát app để không tốn pin
+    // onDestroy
     override fun onDestroy() {
+        // Super
         super.onDestroy()
+        // Dừng ví
         if (::wm.isInitialized) wm.stop()
     }
 }
