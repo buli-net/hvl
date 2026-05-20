@@ -1,112 +1,65 @@
 package com.hvl.wallet
 
-import android.content.Context
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.Coin
-import org.bitcoinj.core.NetworkParameters
-import org.bitcoinj.kits.WalletAppKit
-import org.bitcoinj.params.MainNetParams
-import org.bitcoinj.params.TestNet3Params
-import org.bitcoinj.wallet.DeterministicSeed
-import org.bitcoinj.wallet.Wallet
-import java.io.File
-import java.util.concurrent.TimeUnit
+import android.content.Intent
+import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.hvl.wallet.databinding.ActivityMainBinding
+import kotlinx.coroutines.*
 
-class WalletManager(private val context: Context) {
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var wm: WalletManager
+    private val scope = CoroutineScope(Dispatchers.Main)
 
-    // FIX 1: dùng NetworkParameters để chứa được cả Mainnet và Testnet
-    private var params: NetworkParameters = MainNetParams.get()
-    private val walletDir: File = context.filesDir
-    private lateinit var kit: WalletAppKit
-    private lateinit var wallet: Wallet
-    private var currentName = "hvl-wallet"
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-    fun start() {
-        kit = object : WalletAppKit(params, walletDir, currentName) {
-            override fun onSetupCompleted() { wallet = wallet() }
-        }
-        kit.setAutoSave(true)
-        kit.startAsync()
-        kit.awaitRunning()
-        wallet = kit.wallet()
-    }
+        wm = WalletManager(this)
+        wm.start()
 
-    fun stop() {
-        if (::kit.isInitialized) {
-            kit.stopAsync()
-            kit.awaitTerminated()
-        }
-    }
+        binding.addressText.text = wm.getCurrentAddress()
+        binding.balanceText.text = wm.getBalance()
 
-    fun getCurrentAddress(): String = wallet.currentReceiveAddress().toString()
-
-    fun getBalance(): String = wallet.balance.toFriendlyString()
-
-    fun getTransactionHistory(): List<String> =
-        wallet.getTransactionsByTime().take(20).map {
-            "${it.updateTime} : ${it.getValue(wallet).toFriendlyString()}"
+        scope.launch {
+            val price = withContext(Dispatchers.IO) { PriceHelper.getBtcPrice() }
+            binding.priceText.text = "BTC: $${"%,.0f".format(price)}"
         }
 
-    fun getSeedPhrase(): String =
-        wallet.keyChainSeed?.mnemonicCode?.joinToString(" ") ?: ""
+        binding.historyList.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            wm.getTransactionHistory()
+        )
 
-    fun sendBitcoin(toAddress: String, amountBtc: String): String {
-        return try {
-            val target = Address.fromString(params, toAddress)
-            val amount = Coin.parseCoin(amountBtc)
-            val result = wallet.sendCoins(kit.peerGroup(), target, amount)
-            result.broadcastComplete.get(30, TimeUnit.SECONDS)
-            result.tx.txId.toString()
-        } catch (e: Exception) {
-            "Lỗi: ${e.message}"
+        binding.receiveBtn.setOnClickListener {
+            startActivity(Intent(this, ReceiveActivity::class.java))
+        }
+        binding.sendBtn.setOnClickListener {
+            startActivity(Intent(this, SendActivity::class.java))
+        }
+        binding.manageBtn.setOnClickListener {
+            startActivity(Intent(this, ManageWalletsActivity::class.java))
+        }
+        binding.seedBtn.setOnClickListener {
+            Toast.makeText(this, wm.getSeedPhrase(), Toast.LENGTH_LONG).show()
         }
     }
 
-    fun setTestnet(isTest: Boolean) {
-        params = if (isTest) TestNet3Params.get() else MainNetParams.get()
+    override fun onResume() {
+        super.onResume()
+        if (::wm.isInitialized) {
+            binding.balanceText.text = wm.getBalance()
+            binding.addressText.text = wm.getCurrentAddress()
+        }
     }
 
-    fun createNewWallet(name: String = "wallet-${System.currentTimeMillis()}") {
-        currentName = name
-        if (::kit.isInitialized) stop()
-        start()
-    }
-
-    fun importFromSeed(seedPhrase: String, name: String = "imported") {
-        currentName = name
-        if (::kit.isInitialized) stop()
-        start()
-    }
-
-    fun listWallets(): List<String> {
-        return walletDir.listFiles()
-            ?.filter { it.name.endsWith(".wallet") }
-            ?.map { it.nameWithoutExtension }
-            ?.ifEmpty { listOf(currentName) }
-            ?: listOf(currentName)
-    }
-
-    fun switchWallet(name: String) {
-        currentName = name
-        if (::kit.isInitialized) stop()
-        start()
-    }
-
-    // FIX 2: trả về Boolean để khớp với ManageWalletsActivity.kt dòng 222
-    fun renameWallet(oldName: String, newName: String): Boolean {
-        val oldFile = File(walletDir, "$oldName.wallet")
-        val newFile = File(walletDir, "$newName.wallet")
-        val ok1 = oldFile.renameTo(newFile)
-        val ok2 = File(walletDir, "$oldName.spvchain").renameTo(File(walletDir, "$newName.spvchain"))
-        return ok1 && ok2
-    }
-
-    fun getCurrentWalletName(): String = currentName
-
-    fun getAddressList(): List<String> = listOf(getCurrentAddress())
-
-    fun deleteWallet(name: String) {
-        File(walletDir, "$name.wallet").delete()
-        File(walletDir, "$name.spvchain").delete()
+    override fun onDestroy() {
+        super.onDestroy()
+        wm.stop()
+        scope.cancel()
     }
 }
