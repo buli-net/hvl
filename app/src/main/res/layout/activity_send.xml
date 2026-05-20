@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILE: activity_send.xml -->
+<!-- TÁC DỤNG: Màn hình gửi BTC với quét QR và tùy chỉnh phí -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="20dp">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Gửi Bitcoin" android:textSize="24sp" android:textStyle="bold"/>
+
+    <!-- Ô nhập địa chỉ + nút quét QR -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginTop="20dp">
+        <EditText android:id="@+id/addressInput" android:layout_width="0dp"
+            android:layout_height="wrap_content" android:layout_weight="1"
+            android:hint="Địa chỉ bc1q... hoặc quét QR"/>
+        <Button android:id="@+id/scanBtn" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="📷"/>
+    </LinearLayout>
+
+    <!-- Ô nhập số BTC -->
+    <EditText android:id="@+id/amountInput" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:hint="Số BTC (vd: 0.001)"
+        android:inputType="numberDecimal" android:layout_marginTop="12dp"/>
+
+    <!-- Chọn mức phí -->
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Phí mạng:" android:layout_marginTop="16dp"/>
+    <RadioGroup android:id="@+id/feeGroup" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:orientation="horizontal">
+        <RadioButton android:id="@+id/feeLow" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Thấp" android:checked="true"/>
+        <RadioButton android:id="@+id/feeMedium" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Trung bình"/>
+        <RadioButton android:id="@+id/feeHigh" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Cao"/>
+    </RadioGroup>
+
+    <!-- Hiển thị ước tính phí -->
+    <TextView android:id="@+id/feeEstimate" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="Phí: ~0.00001 BTC ($0.6)"
+        android:layout_marginTop="8dp" android:textColor="#0F0"/>
+
+    <TextView android:id="@+id/totalEstimate" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:text="Tổng: 0 BTC"
+        android:textStyle="bold" android:textSize="16sp"/>
+
+    <Button android:id="@+id/sendConfirmBtn" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="XÁC NHẬN GỬI"
+        android:layout_marginTop="24dp" android:backgroundTint="#F00"/>
+</LinearLayout>
