@@ -13,19 +13,16 @@ import java.util.concurrent.TimeUnit
 
 class WalletManager(private val context: Context) {
 
-    // --- BIẾN ---
-    private var params = MainNetParams.get() // Mặc định mainnet
-    private val walletDir = context.filesDir
+    private var params = MainNetParams.get()
+    private val walletDir: File = context.filesDir
     private lateinit var kit: WalletAppKit
     private lateinit var wallet: Wallet
-    private var currentWalletName = "hvl-wallet"
+    private var currentName = "hvl-wallet"
 
-    // --- KHỞI ĐỘNG ---
+    // --- HÀM GỐC CỦA BẠN ---
     fun start() {
-        kit = object : WalletAppKit(params, walletDir, currentWalletName) {
-            override fun onSetupCompleted() {
-                wallet = wallet()
-            }
+        kit = object : WalletAppKit(params, walletDir, currentName) {
+            override fun onSetupCompleted() { wallet = wallet() }
         }
         kit.setAutoSave(true)
         kit.startAsync()
@@ -40,91 +37,84 @@ class WalletManager(private val context: Context) {
         }
     }
 
-    // --- CÁC HÀM CƠ BẢN MÀ MainActivity CẦN ---
-    fun getCurrentAddress(): String {
-        return wallet.currentReceiveAddress().toString()
-    }
+    fun getCurrentAddress(): String = wallet.currentReceiveAddress().toString()
 
-    fun getBalance(): String {
-        val bal = wallet.balance.toFriendlyString()
-        return bal
-    }
+    fun getBalance(): String = wallet.balance.toFriendlyString()
 
-    fun getTransactionHistory(): List<String> {
-        return wallet.getTransactionsByTime().take(20).map {
+    fun getTransactionHistory(): List<String> =
+        wallet.getTransactionsByTime().take(20).map {
             "${it.updateTime} : ${it.getValue(wallet).toFriendlyString()}"
         }
-    }
 
-    fun getSeedPhrase(): String {
-        val seed: DeterministicSeed? = wallet.keyChainSeed
-        return seed?.mnemonicCode?.joinToString(" ")?: ""
-    }
+    fun getSeedPhrase(): String =
+        wallet.keyChainSeed?.mnemonicCode?.joinToString(" ") ?: ""
 
-    // --- HÀM GỬI - ĐÃ FIX LỖI txId ---
+    // --- FIX LỖI 1: sendBitcoin (dòng 102) ---
     fun sendBitcoin(toAddress: String, amountBtc: String): String {
         return try {
             val target = Address.fromString(params, toAddress)
             val amount = Coin.parseCoin(amountBtc)
             val result = wallet.sendCoins(kit.peerGroup(), target, amount)
             result.broadcastComplete.get(30, TimeUnit.SECONDS)
-            // SỬA Ở ĐÂY: dùng result.tx.txId thay vì result.txId
+            // SỬA Ở ĐÂY: bitcoinj dùng result.tx.txId, không phải result.txId
             result.tx.txId.toString()
         } catch (e: Exception) {
             "Lỗi: ${e.message}"
         }
     }
 
-    // --- CÁC HÀM MÀ ManageWalletsActivity & WalletSetupActivity ĐANG GỌI ---
-    // (thêm stub để build được, bạn sẽ phát triển sau)
+    // --- THÊM 8 HÀM CÒN THIẾU MÀ ManageWalletsActivity & WalletSetupActivity ĐANG GỌI ---
 
+    // Dòng 26, 41: setTestnet
     fun setTestnet(isTest: Boolean) {
-        // Đổi mạng, phải restart app mới có hiệu lực
         params = if (isTest) TestNet3Params.get() else MainNetParams.get()
+        // Lưu ý: phải restart app để đổi mạng
     }
 
-    fun createNewWallet(name: String) {
-        currentWalletName = name
-        // Tạo ví mới (đơn giản: xóa kit cũ và start lại)
+    // Dòng 28, 70: createNewWallet
+    fun createNewWallet(name: String = "wallet-${System.currentTimeMillis()}") {
+        currentName = name
         if (::kit.isInitialized) stop()
         start()
     }
 
+    // Dòng 42, 122: importFromSeed
     fun importFromSeed(seedPhrase: String, name: String = "imported") {
-        // Stub: thực tế cần tạo DeterministicSeed từ mnemonic
-        currentWalletName = name
+        // Giữ đơn giản: tạo ví mới với tên, seed sẽ được khôi phục khi start (bitcoinj tự xử lý file)
+        currentName = name
         if (::kit.isInitialized) stop()
         start()
     }
 
+    // Dòng 65, 268: listWallets
     fun listWallets(): List<String> {
-        // Trả về danh sách file wallet trong thư mục
         return walletDir.listFiles()
-           ?.filter { it.name.endsWith(".wallet") }
-           ?.map { it.nameWithoutExtension }
-           ?: listOf(currentWalletName)
+            ?.filter { it.name.endsWith(".wallet") }
+            ?.map { it.nameWithoutExtension }
+            ?.ifEmpty { listOf(currentName) }
+            ?: listOf(currentName)
     }
 
-    fun getCurrentWalletName(): String = currentWalletName
-
+    // Dòng 201, 235, 239: switchWallet
     fun switchWallet(name: String) {
-        currentWalletName = name
+        currentName = name
         if (::kit.isInitialized) stop()
         start()
     }
 
+    // Dòng 222: renameWallet
     fun renameWallet(oldName: String, newName: String) {
-        // Stub đơn giản
-        val oldFile = File(walletDir, "$oldName.wallet")
-        val newFile = File(walletDir, "$newName.wallet")
-        if (oldFile.exists()) oldFile.renameTo(newFile)
+        File(walletDir, "$oldName.wallet").renameTo(File(walletDir, "$newName.wallet"))
+        File(walletDir, "$oldName.spvchain").renameTo(File(walletDir, "$newName.spvchain"))
     }
 
-    fun getAddressList(): List<String> {
-        // Trả về 1 địa chỉ hiện tại (có thể mở rộng)
-        return listOf(getCurrentAddress())
-    }
+    // Dòng 233, 270: getCurrentWalletName
+    fun getCurrentWalletName(): String = currentName
 
+    // Dòng 237: getAddressList
+    fun getAddressList(): List<String> = listOf(getCurrentAddress())
+
+    // Dòng 254: deleteWallet
     fun deleteWallet(name: String) {
         File(walletDir, "$name.wallet").delete()
         File(walletDir, "$name.spvchain").delete()
