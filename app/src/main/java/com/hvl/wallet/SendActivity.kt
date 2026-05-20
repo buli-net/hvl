@@ -1,104 +1,80 @@
-// FILE: SendActivity.kt
-// TÁC DỤNG: Xử lý gửi BTC với quét QR và tính phí USD
 package com.hvl.wallet
 
 import android.os.Bundle
+import android.text.InputType
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.hvl.wallet.databinding.ActivitySendBinding
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.bitcoinj.core.Coin
+import kotlinx.coroutines.*
 
 class SendActivity : AppCompatActivity() {
-    private lateinit var binding: ActivitySendBinding
-    private lateinit var wm: WalletManager
-    private var btcPrice = 0.0
-    private var feeRate = 10L // sat/vB
-
-    // Khởi tạo trình quét QR
-    private val qrLauncher = registerForActivityResult(ScanContract()) { result ->
-        if (result.contents != null) {
-            // Điền địa chỉ quét được vào ô input
-            binding.addressInput.setText(result.contents)
-        }
-    }
+    // Tạo scope coroutine
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySendBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        wm = WalletManager(this)
-        
-        // Lấy giá BTC và phí mạng
-        lifecycleScope.launch {
-            btcPrice = PriceHelper.getBtcPrice()
-            feeRate = PriceHelper.getFeeRate()
-            updateFeeEstimate()
+
+        // Tạo layout
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(32, 64, 32, 32)
+            setBackgroundColor(0xFF000000.toInt())
         }
-        
-        // Nút quét QR
-        binding.scanBtn.setOnClickListener {
-            val options = ScanOptions()
-            options.setPrompt("Quét địa chỉ ví nhận")
-            qrLauncher.launch(options)
+
+        // Ô nhập địa chỉ
+        val addressInput = EditText(this).apply {
+            hint = "Địa chỉ bc1q..." // Gợi ý
+            setHintTextColor(0xFFAAAAAA.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
         }
-        
-        // Khi thay đổi mức phí, cập nhật lại
-        binding.feeGroup.setOnCheckedChangeListener { _, _ -> updateFeeEstimate() }
-        
-        // Khi nhập số tiền, cập nhật tổng
-        binding.amountInput.addTextChangedListener(object : android.text.TextWatcher {
-            override fun afterTextChanged(s: android.text.Editable?) { updateFeeEstimate() }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-        
-        // Nút xác nhận gửi
-        binding.sendConfirmBtn.setOnClickListener {
-            val address = binding.addressInput.text.toString()
-            val amount = binding.amountInput.text.toString()
-            if (address.isEmpty() || amount.isEmpty()) {
-                Toast.makeText(this, "Nhập đủ địa chỉ và số tiền", Toast.LENGTH_SHORT).show()
+
+        // Ô nhập số lượng
+        val amountInput = EditText(this).apply {
+            hint = "Số lượng BTC"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL // Bàn phím số
+            setHintTextColor(0xFFAAAAAA.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
+        }
+
+        // Nút gửi
+        val sendBtn = Button(this).apply {
+            text = "Gửi"
+            setBackgroundColor(0xFFB39DDB.toInt())
+        }
+
+        // Xử lý click
+        sendBtn.setOnClickListener {
+            val to = addressInput.text.toString() // Lấy địa chỉ
+            val amount = amountInput.text.toString() // Lấy số lượng
+            // Kiểm tra rỗng
+            if (to.isBlank() || amount.isBlank()) {
+                Toast.makeText(this, "Nhập đủ thông tin", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            
-            // Tính phí theo mức chọn
-            val feePerKb = when (binding.feeGroup.checkedRadioButtonId) {
-                R.id.feeLow -> Coin.valueOf(feeRate * 500) // phí thấp
-                R.id.feeHigh -> Coin.valueOf(feeRate * 2000) // phí cao
-                else -> Coin.valueOf(feeRate * 1000) // trung bình
-            }
-            
-            lifecycleScope.launch(Dispatchers.IO) {
-                val result = wm.sendCoins(address, amount, feePerKb)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SendActivity, result, Toast.LENGTH_LONG).show()
-                    if (result.contains("Đã gửi")) finish()
+            // Chạy coroutine
+            scope.launch {
+                val wm = WalletManager(this@SendActivity)
+                // Gửi trên thread IO
+                val txid = withContext(Dispatchers.IO) {
+                    wm.sendBitcoin(to, amount)
                 }
+                // Hiện TXID
+                Toast.makeText(this@SendActivity, "TXID: $txid", Toast.LENGTH_LONG).show()
+                finish() // Đóng màn hình
             }
         }
+
+        // Thêm view
+        layout.addView(addressInput)
+        layout.addView(amountInput)
+        layout.addView(sendBtn)
+        setContentView(layout)
     }
-    
-    // Cập nhật ước tính phí và tổng
-    private fun updateFeeEstimate() {
-        val amount = binding.amountInput.text.toString().toDoubleOrNull() ?: 0.0
-        val multiplier = when (binding.feeGroup.checkedRadioButtonId) {
-            R.id.feeLow -> 0.5
-            R.id.feeHigh -> 2.0
-            else -> 1.0
-        }
-        // Ước tính phí ~ 0.00001 BTC
-        val feeBtc = 0.00001 * multiplier
-        val feeUsd = feeBtc * btcPrice
-        val total = amount + feeBtc
-        
-        binding.feeEstimate.text = "Phí: ~${"%.5f".format(feeBtc)} BTC ($${"%.2f".format(feeUsd)})"
-        binding.totalEstimate.text = "Tổng: ${"%.5f".format(total)} BTC"
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel() // Hủy coroutine
     }
 }
